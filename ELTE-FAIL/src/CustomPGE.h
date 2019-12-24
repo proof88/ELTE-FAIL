@@ -9,9 +9,9 @@
     ###################################################################################
 */
 
-#include "../../PGE/PGE.h" // Using PGE.
+#include "../../../PGE/PGE/PGE.h" // Using PGE.
 #include "BaseConsts.h"    // Constants, macros.
-#include "../../PGE/PRRE/PRREObject3DManager.h"
+#include "../../../PGE/PGE/PRRE/PRREObject3DManager.h"
 
 
 /**

@@ -8,10 +8,10 @@
 */
 
 #include "CustomPGE.h"
-#include "../../PGE/PRRE/PRREuiManager.h"
-#include "../../PGE/PRRE/PRREWindow.h"
-#include "../../PGE/PRRE/PRRECamera.h"
-#include "../../CConsole/src/CConsole.h"
+#include "../../../PGE/PGE/PRRE/PRREuiManager.h"
+#include "../../../PGE/PGE/PRRE/PRREWindow.h"
+#include "../../../PGE/PGE/PRRE/PRRECamera.h"
+#include "../../../CConsole/CConsole/src/CConsole.h"
 #include <sstream>
 
 
