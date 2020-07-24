@@ -6,3 +6,4 @@
 *.idb
 *.pdb
 ELTE-FAIL/log.html
+*.log
