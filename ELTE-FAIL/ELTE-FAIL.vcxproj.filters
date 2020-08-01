@@ -37,6 +37,9 @@
     <Filter Include="Header Files\PGE\PRRE\Display">
       <UniqueIdentifier>{df6ddccb-ba82-4269-a54e-70cdcac3fd22}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\PGE\PRRE\Material">
+      <UniqueIdentifier>{9c8f1a4d-65d0-4e0f-8b32-099011defea0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BaseConsts.h">
@@ -69,22 +72,13 @@
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRRECamera.h">
       <Filter>Header Files\PGE\PRRE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREColor.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRREFiledManager.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREImageManager.h">
       <Filter>Header Files\PGE\PRRE</Filter>
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRREManager.h">
       <Filter>Header Files\PGE\PRRE</Filter>
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRREObject3DManager.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRRETextureManager.h">
       <Filter>Header Files\PGE\PRRE</Filter>
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRREtypes.h">
@@ -146,6 +140,18 @@
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\Display\PRREWindow.h">
       <Filter>Header Files\PGE\PRRE\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Material\PRREColor.h">
+      <Filter>Header Files\PGE\PRRE\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Material\PRREImageManager.h">
+      <Filter>Header Files\PGE\PRRE\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Material\PRREMaterialManager.h">
+      <Filter>Header Files\PGE\PRRE\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Material\PRRETextureManager.h">
+      <Filter>Header Files\PGE\PRRE\Material</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
