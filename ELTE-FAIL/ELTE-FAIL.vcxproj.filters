@@ -40,6 +40,9 @@
     <Filter Include="Header Files\PGE\PRRE\Material">
       <UniqueIdentifier>{9c8f1a4d-65d0-4e0f-8b32-099011defea0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\PGE\PRRE\Object3D">
+      <UniqueIdentifier>{79fa05f2-712e-4672-8d9f-b6bd447ad1ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BaseConsts.h">
@@ -76,9 +79,6 @@
       <Filter>Header Files\PGE\PRRE</Filter>
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRREManager.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREObject3DManager.h">
       <Filter>Header Files\PGE\PRRE</Filter>
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRREtypes.h">
@@ -152,6 +152,9 @@
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\Material\PRRETextureManager.h">
       <Filter>Header Files\PGE\PRRE\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Object3D\PRREObject3DManager.h">
+      <Filter>Header Files\PGE\PRRE\Object3D</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

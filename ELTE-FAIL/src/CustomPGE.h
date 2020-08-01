@@ -11,7 +11,7 @@
 
 #include "../../../PGE/PGE/PGE.h" // Using PGE.
 #include "BaseConsts.h"    // Constants, macros.
-#include "../../../PGE/PGE/PRRE/PRREObject3DManager.h"
+#include "../../../PGE/PGE/PRRE/Object3D/PRREObject3DManager.h"
 
 
 /**
