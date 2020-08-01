@@ -28,6 +28,15 @@
     <Filter Include="Header Files\PGE\PRRE\Render">
       <UniqueIdentifier>{fbab2191-b708-407f-a27f-e9d97e3ef0ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\PGE\PRRE\Hardware">
+      <UniqueIdentifier>{b454f19e-688e-48ae-9f61-19fe5c3c13fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\PGE\PRRE\Math">
+      <UniqueIdentifier>{c3923f8c-1532-4244-9229-b0e33b970380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\PGE\PRRE\Display">
+      <UniqueIdentifier>{df6ddccb-ba82-4269-a54e-70cdcac3fd22}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BaseConsts.h">
@@ -66,37 +75,13 @@
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRREFiledManager.h">
       <Filter>Header Files\PGE\PRRE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREhwAudio.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREhwBase.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREhwCentralProcessor.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREhwInfo.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREhwSystemMemory.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREhwVideo.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRREImageManager.h">
       <Filter>Header Files\PGE\PRRE</Filter>
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRREManager.h">
       <Filter>Header Files\PGE\PRRE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREMatrix.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRREObject3DManager.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREScreen.h">
       <Filter>Header Files\PGE\PRRE</Filter>
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRRETextureManager.h">
@@ -106,12 +91,6 @@
       <Filter>Header Files\PGE\PRRE</Filter>
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\PRREuiManager.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREVector.h">
-      <Filter>Header Files\PGE\PRRE</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PRRE\PRREWindow.h">
       <Filter>Header Files\PGE\PRRE</Filter>
     </ClInclude>
     <ClInclude Include="..\..\CConsole\CConsole\src\CConsole.h">
@@ -128,6 +107,45 @@
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\Render\PRREIRenderer.h">
       <Filter>Header Files\PGE\PRRE\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Hardware\PRREhwAudio.h">
+      <Filter>Header Files\PGE\PRRE\Hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Hardware\PRREhwBase.h">
+      <Filter>Header Files\PGE\PRRE\Hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Hardware\PRREhwCentralProcessor.h">
+      <Filter>Header Files\PGE\PRRE\Hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Hardware\PRREhwInfo.h">
+      <Filter>Header Files\PGE\PRRE\Hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Hardware\PRREhwSystemMemory.h">
+      <Filter>Header Files\PGE\PRRE\Hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Hardware\PRREhwVideo.h">
+      <Filter>Header Files\PGE\PRRE\Hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Math\PRREMatrix.h">
+      <Filter>Header Files\PGE\PRRE\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Math\PRREPosUpTarget.h">
+      <Filter>Header Files\PGE\PRRE\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Math\PRRETransformMatrix.h">
+      <Filter>Header Files\PGE\PRRE\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Math\PRREVector.h">
+      <Filter>Header Files\PGE\PRRE\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Math\PUREScissor.h">
+      <Filter>Header Files\PGE\PRRE\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Display\PRREScreen.h">
+      <Filter>Header Files\PGE\PRRE\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PRRE\Display\PRREWindow.h">
+      <Filter>Header Files\PGE\PRRE\Display</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
