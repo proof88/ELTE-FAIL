@@ -57,7 +57,9 @@ void CustomPGE::onGameInitialized()
     getPRRE().getCamera().SetNearPlane(0.1f);
     getPRRE().getCamera().SetFarPlane(100.0f);
 
-    /*
+    PRRETexture* const tex1 = getPRRE().getTextureManager().createFromFile("gamedata\\proba128x128x24.bmp");
+
+    /*   */     
     box1 = getPRRE().getObject3DManager().createBox(1, 1, 1);
     box1->getPosVec().SetZ(2.0f);
     box1->getPosVec().SetX(1.5f);
@@ -69,37 +71,35 @@ void CustomPGE::onGameInitialized()
     box1->getMaterial().getColors()[9].green  = 0.0f;
     box1->getMaterial().getColors()[9].blue   = 0.0f;
     box1->getMaterial().getColors()[9].alpha  = 0.0f;
-    
-    PRRETexture* const tex1 = getPRRE().getTextureManager().createFromFile("gamedata\\proba128x128x24.bmp");
-    
-    box1->getMaterial().SetTexture(*tex1);
+
+    box1->getMaterial().SetTexture(tex1);
     box1->SetVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
-    */
-
-    box1 = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\cube.obj");
-    box1->SetVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
-    box1->getPosVec().SetZ(3); 
     
-
+    /**/
+    box2 = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\cube.obj");
+    box2->SetVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
+    box2->getPosVec().SetZ(3); 
+    
+    
     /*       
     PRREObject3D* const plane1 = getPRRE().getObject3DManager().createPlane(2, 2);
     plane1->getPosVec().SetX(0);
     plane1->getPosVec().SetZ(2);
-     */
-    /*plane1->getMaterial().SetTexture(*tex1);
-    plane1->SetVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);*/
-        
+    plane1->getMaterial().SetTexture(tex1);
+    plane1->SetVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
+    */
+
     PRREObject3D* const snail = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail.obj");
-    
     snail->SetScaling(0.02f);
     snail->getPosVec().SetZ(2);     
 
-
+    /*    */
     PRREObject3D* snail_lm = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail_lm.obj");
     snail_lm->SetScaling(0.02f);
     snail_lm->Hide();
-    
+      
     // dealing with lightmaps ...
+
     if ( snail->getCount() == snail_lm->getCount() ) 
     {
         for (TPRREuint i = 0; i < snail->getCount(); i++)
@@ -119,8 +119,12 @@ void CustomPGE::onGameInitialized()
     {
         getConsole().EOLn("snail->getCount() != snail_lm->getCount(): %d != %d", snail->getCount(), snail_lm->getCount());
     }
-
+    
     snail->SetVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
+    //snail->SetVertexTransferMode(PRRE_VT_DYN_DIR_SVA_GEN);
+    //snail->SetVertexTransferMode(PRRE_VT_DYN_IND_RVA_CVA_RNG);
+    //snail->SetVertexTransferMode(PRRE_VT_DYN_DIR_RVA_CVA);
+    //snail->SetVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
     snail->SetDoubleSided(true);
 
 
@@ -130,13 +134,8 @@ void CustomPGE::onGameInitialized()
     // WA2: (better) textures should maintain refcount. Material deletion would decrement refcount and would effectively delete textures when refcount reaches 0.
     delete snail_lm;
     snail_lm = NULL;
-        /*
-    snail->SetVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
-          */
-    
-    
 
-    /*
+    /*         
     getPRRE().getTextureManager().SetDefaultIsoFilteringMode(PRRE_ISO_LINEAR_MIPMAP_LINEAR, PRRE_ISO_LINEAR);
 
     PRREObject3D* const arena = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\arena\\arena.obj");
@@ -159,7 +158,7 @@ void CustomPGE::onGameInitialized()
             if ( arenaSub && arenaLMSub )
             {
                 // copying lightmap data into snail material's 2nd layer
-                arenaSub->getMaterial().CopyFromMaterial(arenaLMSub->getMaterial(), 1, 0);
+                arenaSub->getMaterial().copyFromMaterial(arenaLMSub->getMaterial(), 1, 0);
                 arenaSub->getMaterial().SetBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
             }
         }
@@ -174,6 +173,7 @@ void CustomPGE::onGameInitialized()
     delete arena_lm;
     arena_lm = NULL;
     */
+    
     getPRRE().getUImanager().addText("almafaALMAFA012345ѓіќгел_+", 10, 10);
 
     getConsole().OO();

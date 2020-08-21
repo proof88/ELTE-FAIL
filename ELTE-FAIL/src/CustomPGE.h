@@ -53,7 +53,7 @@ protected:
 
 private:
     PRREObject3D* box1;
-    //PRREObject3D* box2;
+    PRREObject3D* box2;
 
     // ---------------------------------------------------------------------------
 
