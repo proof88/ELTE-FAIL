@@ -121,6 +121,8 @@ void CustomPGE::onGameInitialized()
     }
     
     snail->SetVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
+    //snail->SetVertexTransferMode(PRRE_VT_STA_IND_SVA_GEN);
+    //snail->SetVertexTransferMode(PRRE_VT_STA_DIR_SVA_GEN);
     //snail->SetVertexTransferMode(PRRE_VT_DYN_DIR_SVA_GEN);
     //snail->SetVertexTransferMode(PRRE_VT_DYN_IND_RVA_CVA_RNG);
     //snail->SetVertexTransferMode(PRRE_VT_DYN_DIR_RVA_CVA);
