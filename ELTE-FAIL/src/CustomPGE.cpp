@@ -59,7 +59,7 @@ void CustomPGE::onGameInitialized()
 
     PRRETexture* const tex1 = getPRRE().getTextureManager().createFromFile("gamedata\\proba128x128x24.bmp");
 
-    /*   */     
+    /*  */
     box1 = getPRRE().getObject3DManager().createBox(1, 1, 1);
     box1->getPosVec().SetZ(2.0f);
     box1->getPosVec().SetX(1.5f);
@@ -73,9 +73,9 @@ void CustomPGE::onGameInitialized()
     box1->getMaterial().getColors()[9].alpha  = 0.0f;
 
     box1->getMaterial().SetTexture(tex1);
-    box1->SetVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
+    box1->SetVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);  
     
-    /**/
+    /*    */
     box2 = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\cube.obj");
     box2->SetVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
     box2->getPosVec().SetZ(3); 
@@ -91,9 +91,9 @@ void CustomPGE::onGameInitialized()
 
     PRREObject3D* const snail = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail.obj");
     snail->SetScaling(0.02f);
-    snail->getPosVec().SetZ(2);     
+    snail->getPosVec().SetZ(2);  
 
-    /*    */
+    /* */   
     PRREObject3D* snail_lm = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail_lm.obj");
     snail_lm->SetScaling(0.02f);
     snail_lm->Hide();
@@ -118,7 +118,7 @@ void CustomPGE::onGameInitialized()
     else
     {
         getConsole().EOLn("snail->getCount() != snail_lm->getCount(): %d != %d", snail->getCount(), snail_lm->getCount());
-    }
+    }    
     
     snail->SetVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
     //snail->SetVertexTransferMode(PRRE_VT_STA_IND_SVA_GEN);
@@ -135,7 +135,10 @@ void CustomPGE::onGameInitialized()
     // WA1: CopyFromMaterial() should hardcopy the textures also; deleting material should delete its textures too;
     // WA2: (better) textures should maintain refcount. Material deletion would decrement refcount and would effectively delete textures when refcount reaches 0.
     delete snail_lm;
-    snail_lm = NULL;
+    snail_lm = NULL; 
+
+    /*PRREObject3D* snail_clone = getPRRE().getObject3DManager().createCloned(*snail);
+    snail_clone->getPosVec().SetX(-1);*/
 
     /*         
     getPRRE().getTextureManager().SetDefaultIsoFilteringMode(PRRE_ISO_LINEAR_MIPMAP_LINEAR, PRRE_ISO_LINEAR);
