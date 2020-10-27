@@ -8,11 +8,14 @@
 */
 
 #include "CustomPGE.h"
-#include "../../../PGE/PGE/PRRE/PRREuiManager.h"
-#include "../../../PGE/PGE/PRRE/Display/PRREWindow.h"
-#include "../../../PGE/PGE/PRRE/PRRECamera.h"
-#include "../../../CConsole/CConsole/src/CConsole.h"
+
 #include <sstream>
+
+#include "../../../PGE/PGE/PRRE/include/external/PRREuiManager.h"
+#include "../../../PGE/PGE/PRRE/include/external/Display/PRREWindow.h"
+#include "../../../PGE/PGE/PRRE/include/external/PRRECamera.h"
+#include "../../../CConsole/CConsole/src/CConsole.h"
+
 
 
 // ############################### PUBLIC ################################

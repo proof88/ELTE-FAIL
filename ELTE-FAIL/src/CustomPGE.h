@@ -10,8 +10,9 @@
 */
 
 #include "../../../PGE/PGE/PGE.h" // Using PGE.
+#include "../../../PGE/PGE/PRRE/include/external/Object3D/PRREObject3DManager.h"
 #include "BaseConsts.h"    // Constants, macros.
-#include "../../../PGE/PGE/PRRE/Object3D/PRREObject3DManager.h"
+
 
 
 /**
