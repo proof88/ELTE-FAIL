@@ -43,8 +43,7 @@
     @param hPrevInstance Always NULL.
     @param lpCmdLine     Command line.
     @param nCmdShow      How to display the window, ignored.
-    @return 0 if the function terminates before entering runGame().
-            Otherwise PostQuitMessage()'s nExitCode parameter (WM_QUIT message's wParam parameter).
+    @return 0 in success case, positive value in case of initialization or shutdown error.
 */
 
 #pragma warning(disable:4100)  /* unreferenced formal parameter */
@@ -52,36 +51,43 @@
 int WINAPI WinMain(const HINSTANCE hInstance, const HINSTANCE hPrevInstance, const LPSTR lpCmdLine, const int nCmdShow)
 {
     CustomPGE* const gameEngine = CustomPGE::createAndGetCustomPGEinstance();
-    int nResult = 0;
-
+    
     // Initializing the game engine.
-    switch ( gameEngine->initializeGame() )
+    int nResult = gameEngine->initializeGame();
+    
+    switch ( nResult )
     {
-    case 0: // Success, running the game.
+    case 0:
+    {   // Success, running the game.
         nResult = gameEngine->runGame();  // <<< << << <<  <  -  <  -  <  -  -  -  HERE THE GAME RUNS! O.o 
 
         // Destroying the game engine.
-        switch ( gameEngine->destroyGame() )
+        nResult = gameEngine->destroyGame();
+        switch ( nResult )
         {
         case 0: // Successful stop.
             break;
         case 1: // Error during GFX engine stop.
-            CustomPGE::showErrorDialog( PGE_MSG_ERR_EXIT_GFX ); break;
+            PGE::showErrorDialog( PGE_MSG_ERR_EXIT_GFX ); break;
         case 2: // Error during SFX engine stop.
-            CustomPGE::showErrorDialog( PGE_MSG_ERR_EXIT_SFX ); break;
+            PGE::showErrorDialog( PGE_MSG_ERR_EXIT_SFX ); break;
         case 3: // Error during NET engine stop.
-            CustomPGE::showErrorDialog( PGE_MSG_ERR_EXIT_NET ); break;
+            PGE::showErrorDialog( PGE_MSG_ERR_EXIT_NET ); break;
+        default:
+            PGE::showErrorDialog((std::string("General PGE destroy error, code ") + std::to_string(nResult)).c_str());
         } // switch destroy
-
-        break;
+    }
+    break;
     
     // An error occured during initialization.
     case 1: // The GFX engine failed.
-        CustomPGE::showErrorDialog( PGE_MSG_ERR_INIT_GFX ); break;
+        PGE::showErrorDialog( PGE_MSG_ERR_INIT_GFX ); break;
     case 2: // The SFX engine failed.
-        CustomPGE::showErrorDialog( PGE_MSG_ERR_INIT_SFX ); break;
+        PGE::showErrorDialog( PGE_MSG_ERR_INIT_SFX ); break;
     case 3: // The NET engine failed.
-        CustomPGE::showErrorDialog( PGE_MSG_ERR_INIT_NET ); break;
+        PGE::showErrorDialog( PGE_MSG_ERR_INIT_NET ); break;
+    default:
+        PGE::showErrorDialog((std::string("General PGE initialization error, code ") + std::to_string(nResult)).c_str());
     } // switch initialize
 
     return nResult;
