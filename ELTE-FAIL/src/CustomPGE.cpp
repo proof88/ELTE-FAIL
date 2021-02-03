@@ -76,11 +76,11 @@ void CustomPGE::onGameInitialized()
     box1->getMaterial().getColors()[9].alpha  = 0.0f;
 
     box1->getMaterial().SetTexture(tex1);
-    box1->SetVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);  
+    box1->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);  
     
     /*    */
     box2 = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\cube.obj");
-    box2->SetVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
+    box2->setVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
     box2->getPosVec().SetZ(3); 
     
     
@@ -89,7 +89,7 @@ void CustomPGE::onGameInitialized()
     plane1->getPosVec().SetX(0);
     plane1->getPosVec().SetZ(2);
     plane1->getMaterial().SetTexture(tex1);
-    plane1->SetVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
+    plane1->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
     */
 
     PRREObject3D* const snail = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail.obj");
@@ -123,13 +123,13 @@ void CustomPGE::onGameInitialized()
         getConsole().EOLn("snail->getCount() != snail_lm->getCount(): %d != %d", snail->getCount(), snail_lm->getCount());
     }    
     
-    snail->SetVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
-    //snail->SetVertexTransferMode(PRRE_VT_STA_IND_SVA_GEN);
-    //snail->SetVertexTransferMode(PRRE_VT_STA_DIR_SVA_GEN);
-    //snail->SetVertexTransferMode(PRRE_VT_DYN_DIR_SVA_GEN);
-    //snail->SetVertexTransferMode(PRRE_VT_DYN_IND_RVA_CVA_RNG);
-    //snail->SetVertexTransferMode(PRRE_VT_DYN_DIR_RVA_CVA);
-    //snail->SetVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
+    snail->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
+    //snail->setVertexTransferMode(PRRE_VT_STA_IND_SVA_GEN);
+    //snail->setVertexTransferMode(PRRE_VT_STA_DIR_SVA_GEN);
+    //snail->setVertexTransferMode(PRRE_VT_DYN_DIR_SVA_GEN);
+    //snail->setVertexTransferMode(PRRE_VT_DYN_IND_RVA_CVA_RNG);
+    //snail->setVertexTransferMode(PRRE_VT_DYN_DIR_RVA_CVA);
+    //snail->setVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
     snail->SetDoubleSided(true);
 
 
@@ -176,7 +176,7 @@ void CustomPGE::onGameInitialized()
         getConsole().EOLn("arena->getCount() != arenaLMSub->getCount(): %d != %d", arena->getCount(), arena_lm->getCount());
     }
 
-    arena->SetVertexTransferMode(PRRE_VT_DYN_DIR_SVA_GEN);
+    arena->setVertexTransferMode(PRRE_VT_DYN_DIR_SVA_GEN);
 
     delete arena_lm;
     arena_lm = NULL;
