@@ -75,7 +75,7 @@ void CustomPGE::onGameInitialized()
     box1->getMaterial().getColors()[9].blue   = 0.0f;
     box1->getMaterial().getColors()[9].alpha  = 0.0f;
 
-    box1->getMaterial().SetTexture(tex1);
+    box1->getMaterial().setTexture(tex1);
     box1->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);  
     
     /*    */
@@ -88,7 +88,7 @@ void CustomPGE::onGameInitialized()
     PRREObject3D* const plane1 = getPRRE().getObject3DManager().createPlane(2, 2);
     plane1->getPosVec().SetX(0);
     plane1->getPosVec().SetZ(2);
-    plane1->getMaterial().SetTexture(tex1);
+    plane1->getMaterial().setTexture(tex1);
     plane1->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
     */
 
@@ -114,7 +114,7 @@ void CustomPGE::onGameInitialized()
             {
                 // copying lightmap data into snail material's 2nd layer
                 snailSub->getMaterial().copyFromMaterial(snailLMSub->getMaterial(), 1, 0);
-                snailSub->getMaterial().SetBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
+                snailSub->getMaterial().setBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
             }
         }
     }
@@ -167,7 +167,7 @@ void CustomPGE::onGameInitialized()
             {
                 // copying lightmap data into snail material's 2nd layer
                 arenaSub->getMaterial().copyFromMaterial(arenaLMSub->getMaterial(), 1, 0);
-                arenaSub->getMaterial().SetBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
+                arenaSub->getMaterial().setBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
             }
         }
     }
