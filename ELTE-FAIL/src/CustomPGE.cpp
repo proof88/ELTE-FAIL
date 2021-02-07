@@ -144,7 +144,7 @@ void CustomPGE::onGameInitialized()
     snail_clone->getPosVec().SetX(-1);*/
 
     /*         
-    getPRRE().getTextureManager().SetDefaultIsoFilteringMode(PRRE_ISO_LINEAR_MIPMAP_LINEAR, PRRE_ISO_LINEAR);
+    getPRRE().getTextureManager().setDefaultIsoFilteringMode(PRRE_ISO_LINEAR_MIPMAP_LINEAR, PRRE_ISO_LINEAR);
 
     PRREObject3D* const arena = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\arena\\arena.obj");
     arena->SetScaling(0.005f);
