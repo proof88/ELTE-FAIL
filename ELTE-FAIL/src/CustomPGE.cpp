@@ -105,7 +105,7 @@ void CustomPGE::onGameInitialized()
 
     if ( snail->getCount() == snail_lm->getCount() ) 
     {
-        for (TPRREuint i = 0; i < snail->getCount(); i++)
+        for (TPRREint i = 0; i < snail->getCount(); i++)
         {
             PRREObject3D* const snailSub = (PRREObject3D*) snail->getAttachedAt(i);
             // assuming that snail_lm has the same subobjects and vertex count as snail
@@ -202,16 +202,16 @@ void CustomPGE::onGameRunning()
 
     static bool bCameraLocked = false;
 
-    const int oldmx = input.getMouse().getCursorPosX();
-    const int oldmy = input.getMouse().getCursorPosY();
+    /*const int oldmx = input.getMouse().getCursorPosX();
+    const int oldmy = input.getMouse().getCursorPosY();*/
 
     input.getMouse().SetCursorPos(window.getX() + window.getWidth()/2,
                                   window.getY() + window.getHeight()/2);
 
+    /*
     int changeX = oldmx - input.getMouse().getCursorPosX();
     int changeY = oldmy - input.getMouse().getCursorPosY();
-
-    /*pGFX->getCamera().getTargetVec().SetY( pGFX->getCamera().getTargetVec().getY() - changeY / 10.0f );
+    pGFX->getCamera().getTargetVec().SetY( pGFX->getCamera().getTargetVec().getY() - changeY / 10.0f );
     pGFX->getCamera().getTargetVec().SetX( pGFX->getCamera().getTargetVec().getX() - changeX / 10.0f );*/
 
     if ( box1 != NULL )
@@ -246,7 +246,7 @@ void CustomPGE::onGameRunning()
         getPRRE().getCamera().Elevate(-0.01f);
     }
 
-    if ( input.getKeyboard().isKeyPressed(VkKeyScan('1')) )
+    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('1')) )
     {
         if ( box1 != NULL )
         {
@@ -255,7 +255,7 @@ void CustomPGE::onGameRunning()
         }
     }
 
-    if ( input.getKeyboard().isKeyPressed(VkKeyScan('2')) )
+    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('2')) )
     {
         PRREObject3D* snailobj = (PRREObject3D*) getPRRE().getObject3DManager().getByFilename("gamedata\\models\\snail_proofps\\snail.obj");
         if ( snailobj != NULL )
@@ -265,7 +265,7 @@ void CustomPGE::onGameRunning()
         }
     }
 
-    if ( input.getKeyboard().isKeyPressed(VkKeyScan('3')) )
+    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('3')) )
     {
         PRREObject3D* arenaobj = (PRREObject3D*) getPRRE().getObject3DManager().getByFilename("gamedata\\models\\arena\\arena.obj");
         if ( arenaobj != NULL )
@@ -275,33 +275,33 @@ void CustomPGE::onGameRunning()
         }
     }
 
-    if ( input.getKeyboard().isKeyPressed(VkKeyScan('w')) )
+    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('w')) )
     {
         box1->getPosVec().SetZ( box1->getPosVec().getZ() + 0.01f );
     }
-    if ( input.getKeyboard().isKeyPressed(VkKeyScan('s')) )
+    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('s')) )
     {
         box1->getPosVec().SetZ( box1->getPosVec().getZ() - 0.01f );
     }
-    if ( input.getKeyboard().isKeyPressed(VkKeyScan('a')) )
+    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('a')) )
     {
         box1->getPosVec().SetX( box1->getPosVec().getX() - 0.01f );
     }
-    if ( input.getKeyboard().isKeyPressed(VkKeyScan('d')) )
+    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('d')) )
     {
         box1->getPosVec().SetX( box1->getPosVec().getX() + 0.01f );
     }
-    if ( input.getKeyboard().isKeyPressed(VkKeyScan('i')) )
+    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('i')) )
     {
         box1->getPosVec().SetY( box1->getPosVec().getY() + 0.01f );
     }
-    if ( input.getKeyboard().isKeyPressed(VkKeyScan('k')) )
+    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('k')) )
     {
         box1->getPosVec().SetY( box1->getPosVec().getY() - 0.01f );
     }
 
     // L for camera Lock
-    if ( input.getKeyboard().isKeyPressed(VkKeyScan('l')) )
+    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('l')) )
     {
         bCameraLocked = !bCameraLocked;
         Sleep(200);
