@@ -187,6 +187,8 @@ void CustomPGE::onGameInitialized()
     getConsole().OO();
     getConsole().OLn("");
 
+    getPRRE().WriteList();
+
 } // onGameInitialized()
 
 
