@@ -17,8 +17,6 @@
 
 /**
     The customized game engine class. This handles the game logic. Singleton.
-
-    This class doesn't use any API directly.
 */
 class CustomPGE :
     public PGE

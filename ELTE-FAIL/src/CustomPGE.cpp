@@ -83,7 +83,6 @@ void CustomPGE::onGameInitialized()
     box2->setVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
     box2->getPosVec().SetZ(3); 
     
-    
     /*       
     PRREObject3D* const plane1 = getPRRE().getObject3DManager().createPlane(2, 2);
     plane1->getPosVec().SetX(0);
@@ -100,7 +99,7 @@ void CustomPGE::onGameInitialized()
     PRREObject3D* snail_lm = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail_lm.obj");
     snail_lm->SetScaling(0.02f);
     snail_lm->Hide();
-      
+     
     // dealing with lightmaps ...
 
     if ( snail->getCount() == snail_lm->getCount() ) 
