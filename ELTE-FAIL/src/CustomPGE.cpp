@@ -50,6 +50,32 @@ CustomPGE::~CustomPGE()
 } // ~CustomPGE()
 
 
+CConsole& CustomPGE::getConsole() const
+{
+    return CConsole::getConsoleInstance(getLoggerModuleName());
+} // getConsole()
+
+
+const char* CustomPGE::getLoggerModuleName() const
+{
+    return "CustomPGE";
+} // getLoggerModuleName()
+
+
+/**
+    Must-have minimal stuff before loading anything.
+    Game engine calls this before even finishing its own initialization.
+*/
+void CustomPGE::onGameInitializing()
+{
+    // Earliest we can enable our own logging
+    getConsole().SetLoggingState(getLoggerModuleName(), true);
+
+    // Turn everything on for development only
+    getConsole().SetLoggingState("4LLM0DUL3S", true);
+}
+
+
 /** 
     Loading game content here.
 */
