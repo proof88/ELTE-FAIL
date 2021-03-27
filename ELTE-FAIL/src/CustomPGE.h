@@ -29,7 +29,7 @@ public:
     // ---------------------------------------------------------------------------
 
     CConsole& getConsole() const;
-    const char* getLoggerModuleName() const;
+    static const char* getLoggerModuleName();
    
 protected:
 

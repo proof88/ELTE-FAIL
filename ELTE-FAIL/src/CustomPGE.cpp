@@ -56,7 +56,7 @@ CConsole& CustomPGE::getConsole() const
 } // getConsole()
 
 
-const char* CustomPGE::getLoggerModuleName() const
+const char* CustomPGE::getLoggerModuleName()
 {
     return "CustomPGE";
 } // getLoggerModuleName()
