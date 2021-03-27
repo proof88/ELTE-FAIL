@@ -69,7 +69,13 @@ const char* CustomPGE::getLoggerModuleName()
 void CustomPGE::onGameInitializing()
 {
     // Earliest we can enable our own logging
+    getConsole().Initialize("ELTE-FAIL log", true);
     getConsole().SetLoggingState(getLoggerModuleName(), true);
+    getConsole().SetFGColor( FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE, "999999" );
+    getConsole().SetIntsColor( FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY, "FFFF00" );
+    getConsole().SetStringsColor( FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY, "FFFFFF" );
+    getConsole().SetFloatsColor( FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY, "FFFF00" );
+    getConsole().SetBoolsColor( FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY, "00FFFF" );
 
     // Turn everything on for development only
     getConsole().SetLoggingState("4LLM0DUL3S", true);
@@ -358,6 +364,8 @@ void CustomPGE::onGameDestroying()
     delete box1;
     box1 = NULL;
     getPRRE().getObject3DManager().DeleteAll();
+
+    getConsole().Deinitialize();
 } // onGameRunning()
 
 
