@@ -144,7 +144,7 @@ void CustomPGE::onGameInitialized()
             if ( snailSub && snailLMSub )
             {
                 // copying lightmap data into snail material's 2nd layer
-                snailSub->getMaterial().copyFromMaterial(snailLMSub->getMaterial(), 1, 0);
+                snailSub->getMaterial(false).copyFromMaterial(snailLMSub->getMaterial(false), 1, 0);
                 snailSub->getMaterial(false).setBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
             }
         }
@@ -197,7 +197,7 @@ void CustomPGE::onGameInitialized()
             if ( arenaSub && arenaLMSub )
             {
                 // copying lightmap data into snail material's 2nd layer
-                arenaSub->getMaterial().copyFromMaterial(arenaLMSub->getMaterial(), 1, 0);
+                arenaSub->getMaterial(false).copyFromMaterial(arenaLMSub->getMaterial(false), 1, 0);
                 arenaSub->getMaterial(false).setBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
             }
         }
