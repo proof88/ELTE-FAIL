@@ -171,8 +171,11 @@ void CustomPGE::onGameInitialized()
     delete snail_lm;
     snail_lm = NULL; 
 
-    /*PRREObject3D* snail_clone = getPRRE().getObject3DManager().createCloned(*snail);
-    snail_clone->getPosVec().SetX(-1);*/
+    /*
+    PRREObject3D* snail_clone = getPRRE().getObject3DManager().createCloned(*snail);
+    snail_clone->getPosVec().SetX(-1);
+    snail->SetOcclusionTested(false);
+    */
 
     /*         
     getPRRE().getTextureManager().setDefaultIsoFilteringMode(PRRE_ISO_LINEAR_MIPMAP_LINEAR, PRRE_ISO_LINEAR);
