@@ -286,7 +286,7 @@ void CustomPGE::onGameRunning()
     {
         if ( box1 != NULL )
         {
-            box1->SetVisible( !box1->isVisible() );
+            box1->SetRenderingAllowed( !box1->isRenderingAllowed() );
             Sleep(200); /* to make sure key is released, avoid bouncing */
         }
     }
@@ -296,7 +296,7 @@ void CustomPGE::onGameRunning()
         PRREObject3D* snailobj = (PRREObject3D*) getPRRE().getObject3DManager().getByFilename("gamedata\\models\\snail_proofps\\snail.obj");
         if ( snailobj != NULL )
         {
-            snailobj->SetVisible( !snailobj->isVisible() );
+            snailobj->SetRenderingAllowed( !snailobj->isRenderingAllowed() );
             Sleep(200);
         }
     }
@@ -306,7 +306,7 @@ void CustomPGE::onGameRunning()
         PRREObject3D* arenaobj = (PRREObject3D*) getPRRE().getObject3DManager().getByFilename("gamedata\\models\\arena\\arena.obj");
         if ( arenaobj != NULL )
         {
-            arenaobj->SetVisible( !arenaobj->isVisible() );
+            arenaobj->SetRenderingAllowed( !arenaobj->isRenderingAllowed() );
             Sleep(200);
         }
     }
