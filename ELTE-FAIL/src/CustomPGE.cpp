@@ -98,6 +98,10 @@ void CustomPGE::onGameInitialized()
     box1 = getPRRE().getObject3DManager().createBox(1, 1, 1);
     box1->getPosVec().SetZ(2.0f);
     box1->getPosVec().SetX(1.5f);
+    box1->SetOccluder(true);
+    box1->SetOcclusionTested(false);
+
+    // since a while this vertex coloring is not working
     box1->getMaterial().getColors()[0].red    = 1.0f;
     box1->getMaterial().getColors()[0].green  = 0.0f;
     box1->getMaterial().getColors()[0].blue   = 0.0f;
@@ -106,7 +110,7 @@ void CustomPGE::onGameInitialized()
     box1->getMaterial().getColors()[9].green  = 0.0f;
     box1->getMaterial().getColors()[9].blue   = 0.0f;
     box1->getMaterial().getColors()[9].alpha  = 0.0f;
-
+    
     box1->getMaterial().setTexture(tex1);
     box1->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);  
     
