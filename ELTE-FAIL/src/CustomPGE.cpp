@@ -70,12 +70,15 @@ void CustomPGE::onGameInitializing()
 {
     // Earliest we can enable our own logging
     getConsole().Initialize("ELTE-FAIL log", true);
-    getConsole().SetLoggingState(getLoggerModuleName(), true);
     getConsole().SetFGColor( FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE, "999999" );
     getConsole().SetIntsColor( FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY, "FFFF00" );
     getConsole().SetStringsColor( FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY, "FFFFFF" );
     getConsole().SetFloatsColor( FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY, "FFFF00" );
     getConsole().SetBoolsColor( FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY, "00FFFF" );
+
+    // CustomPGE (game) logs
+    getConsole().SetLoggingState(getLoggerModuleName(), true);
+    getConsole().SetLoggingState("PGESysNET", true);
 
     // Turn everything on for development only
     getConsole().SetLoggingState("4LLM0DUL3S", true);
@@ -89,6 +92,12 @@ void CustomPGE::onGameInitialized()
 {
     getConsole().OLnOI("CustomPGE::onGameInitialized()");
 
+    if (!isServer())
+    {
+        // Reduce client logs so below loading of resources wont log
+        getConsole().SetLoggingState("4LLM0DUL3S", false);
+    }
+
     getPRRE().getCamera().SetNearPlane(0.1f);
     getPRRE().getCamera().SetFarPlane(100.0f);
 
@@ -100,7 +109,7 @@ void CustomPGE::onGameInitialized()
     box1->getPosVec().SetX(1.5f);
     box1->SetOccluder(true);
     box1->SetOcclusionTested(false);
-
+    
     // since a while this vertex coloring is not working
     box1->getMaterial().getColors()[0].red    = 1.0f;
     box1->getMaterial().getColors()[0].green  = 0.0f;
@@ -130,14 +139,14 @@ void CustomPGE::onGameInitialized()
     PRREObject3D* const snail = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail.obj");
     snail->SetScaling(0.02f);
     snail->getPosVec().SetZ(2);  
-
+    
     /* */   
     PRREObject3D* snail_lm = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail_lm.obj");
     snail_lm->SetScaling(0.02f);
     snail_lm->Hide();
      
     // dealing with lightmaps ...
-
+    
     if ( snail->getCount() == snail_lm->getCount() ) 
     {
         for (TPRREint i = 0; i < snail->getCount(); i++)
