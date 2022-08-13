@@ -9,6 +9,7 @@
 
 #include "CustomPGE.h"
 
+#include <cassert>
 #include <sstream>
 
 #include "../../../PGE/PGE/PRRE/include/external/PRREuiManager.h"
@@ -236,6 +237,15 @@ void CustomPGE::onGameInitialized()
 
     getPRRE().WriteList();
 
+    if (!isServer())
+    {
+        if (!ConnectClient())
+        {
+            PGE::showErrorDialog("Client has FAILED to establish connection to the server!");
+            assert(false);
+        }
+    }
+
 } // onGameInitialized()
 
 
@@ -246,6 +256,8 @@ void CustomPGE::onGameInitialized()
 */
 void CustomPGE::onGameRunning()
 {
+    HandlePackets();
+
     const PRREWindow& window = getPRRE().getWindow();
     const PGEInputHandler& input = PGEInputHandler::createAndGet();
 
@@ -387,3 +399,46 @@ void CustomPGE::onGameDestroying()
 
 // ############################### PRIVATE ###############################
 
+
+void CustomPGE::HandleUserConnected(const PgePacket& pkt)
+{
+    if (pkt.msg.userConnected.bCurrentClient)
+    {
+        getConsole().OLn("CustomPGE::%s(): this is me", __func__);
+        // TODO: set user name for myself
+        return;
+    }
+
+    // TODO someone else new is connected, create object for it
+}
+
+
+void CustomPGE::HandlePackets()
+{
+    if (getPacketQueue().size() == 0)
+    {
+        return;
+    }
+
+    // PGESysNet currently drains only 1 pkt from the queue so here we always have only 1 pkt
+    // I think on the long run it would be better to move pkt handling to separate thread and handle
+    // all packets as soon as possible, or change PGESysNet to drain all packets and then here
+    // we could handle all of them
+
+    PgePacket pkt = getPacketQueue().front();
+    getPacketQueue().pop_front();
+
+    switch (pkt.pktId)
+    {
+    case PgePktUserConnected::id:
+        getConsole().OLn("CustomPGE::%s(): PgePktUserConnected: %s", __func__, pkt.msg.userConnected.sUserName);
+        HandleUserConnected(pkt);
+        break;
+    case PgePktUserCmdMove::id:
+        // not handled by clients
+        getConsole().EOLn("CustomPGE::%s(): PgePktUserCmdMove should not be received by any client!", __func__, pkt.pktId);
+        break;
+    default:
+        getConsole().EOLn("CustomPGE::%s(): unknown pktId %d", __func__, pkt.pktId);
+    }
+}

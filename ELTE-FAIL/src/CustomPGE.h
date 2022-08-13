@@ -59,5 +59,8 @@ private:
 
     // ---------------------------------------------------------------------------
 
+    void HandleUserConnected(const PgePacket& pkt);
+    void HandlePackets();
+
 
 }; // class CustomPGE
