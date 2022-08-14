@@ -47,10 +47,12 @@ protected:
     explicit CustomPGE(const char* gametitle);  /**< This is the only usable ctor, this is used by the static createAndGet(). */
     virtual ~CustomPGE();
 
-    virtual void onGameInitializing(); /**< Must-have minimal stuff before loading anything. */
-    virtual void onGameInitialized();  /**< Loading game content here. */
-    virtual void onGameRunning();      /**< Game logic here. */
-    virtual void onGameDestroying();   /**< Freeing up game content here. */
+    virtual void onGameInitializing();  /**< Must-have minimal stuff before loading anything. */
+    virtual void onGameInitialized();   /**< Loading game content here. */
+    virtual void onGameRunning();       /**< Game logic here. */
+    virtual void onPacketReceived(
+        const PgePacket& pkt);          /**< Called when a new network packet is received. */
+    virtual void onGameDestroying();    /**< Freeing up game content here. */
 
 
 private:
@@ -59,8 +61,5 @@ private:
 
     // ---------------------------------------------------------------------------
 
-    void HandleUserConnected(const PgePacket& pkt);
-    void HandlePackets();
-
-
+    void HandleUserConnected(const PgePktUserConnected& pkt);
 }; // class CustomPGE

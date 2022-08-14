@@ -93,11 +93,8 @@ void CustomPGE::onGameInitialized()
 {
     getConsole().OLnOI("CustomPGE::onGameInitialized()");
 
-    if (!isServer())
-    {
-        // Reduce client logs so below loading of resources wont log
-        getConsole().SetLoggingState("4LLM0DUL3S", false);
-    }
+    // Dont want to see logs of loading of resources cause I'm debugging network now
+    getConsole().SetLoggingState("4LLM0DUL3S", false);
 
     getPRRE().getCamera().SetNearPlane(0.1f);
     getPRRE().getCamera().SetFarPlane(100.0f);
@@ -169,12 +166,6 @@ void CustomPGE::onGameInitialized()
     }    
     
     snail->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
-    //snail->setVertexTransferMode(PRRE_VT_STA_IND_SVA_GEN);
-    //snail->setVertexTransferMode(PRRE_VT_STA_DIR_SVA_GEN);
-    //snail->setVertexTransferMode(PRRE_VT_DYN_DIR_SVA_GEN);
-    //snail->setVertexTransferMode(PRRE_VT_DYN_IND_RVA_CVA_RNG);
-    //snail->setVertexTransferMode(PRRE_VT_DYN_DIR_RVA_CVA);
-    //snail->setVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
     snail->SetDoubleSided(true);
 
 
@@ -256,8 +247,6 @@ void CustomPGE::onGameInitialized()
 */
 void CustomPGE::onGameRunning()
 {
-    HandlePackets();
-
     const PRREWindow& window = getPRRE().getWindow();
     const PGEInputHandler& input = PGEInputHandler::createAndGet();
 
@@ -383,12 +372,34 @@ void CustomPGE::onGameRunning()
 } // onGameRunning()
 
 
+/**
+    Called when a new network packet is received.
+*/
+void CustomPGE::onPacketReceived(const PgePacket& pkt)
+{
+    switch (pkt.pktId)
+    {
+    case PgePktUserConnected::id:
+        HandleUserConnected(pkt.msg.userConnected);
+        break;
+    case PgePktUserCmdMove::id:
+        // not handled by clients
+        getConsole().EOLn("CustomPGE::%s(): PgePktUserCmdMove should not be received by any client!", __func__, pkt.pktId);
+        break;
+    default:
+        getConsole().EOLn("CustomPGE::%s(): unknown pktId %d", __func__, pkt.pktId);
+    }
+}
+
+
 /** 
     Freeing up game content here.
     Free up everything that has been allocated in onGameInitialized() and onGameRunning().
 */
 void CustomPGE::onGameDestroying()
 {
+    getPlayers().clear();
+
     delete box1;
     box1 = NULL;
     getPRRE().getObject3DManager().DeleteAll();
@@ -400,45 +411,39 @@ void CustomPGE::onGameDestroying()
 // ############################### PRIVATE ###############################
 
 
-void CustomPGE::HandleUserConnected(const PgePacket& pkt)
+void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
 {
-    if (pkt.msg.userConnected.bCurrentClient)
+    if (isServer())
     {
-        getConsole().OLn("CustomPGE::%s(): this is me", __func__);
-        // TODO: set user name for myself
+        getConsole().OLn("CustomPGE::%s(): new user %s connected and I'm server", __func__, pkt.sUserName);
+    }
+    else
+    {
+        if (pkt.bCurrentClient)
+        {
+            getConsole().OLn("CustomPGE::%s(): this is me, my name is %s", __func__, pkt.sUserName);
+            // TODO: set user name for myself
+        }
+        else
+        {
+            getConsole().OLn("CustomPGE::%s(): new user %s connected and I'm client", __func__, pkt.sUserName);
+        }
+    }
+
+    if (getPlayers().end() != getPlayers().find(pkt.sUserName))
+    {
+        getConsole().EOLn("CustomPGE::%s(): user %s is already present in players list!", __func__, pkt.sUserName);
         return;
     }
 
-    // TODO someone else new is connected, create object for it
+    PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(1, 1);
+    plane->getPosVec().SetX(0);
+    plane->getPosVec().SetZ(2);
+    //plane->getMaterial().setTexture(tex1);
+    plane->setVertexModifyingHabit(PRRE_VMOD_STATIC);
+    plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
+
+    getPlayers()[pkt.sUserName].pObject3D = plane;
 }
 
 
-void CustomPGE::HandlePackets()
-{
-    if (getPacketQueue().size() == 0)
-    {
-        return;
-    }
-
-    // PGESysNet currently drains only 1 pkt from the queue so here we always have only 1 pkt
-    // I think on the long run it would be better to move pkt handling to separate thread and handle
-    // all packets as soon as possible, or change PGESysNet to drain all packets and then here
-    // we could handle all of them
-
-    PgePacket pkt = getPacketQueue().front();
-    getPacketQueue().pop_front();
-
-    switch (pkt.pktId)
-    {
-    case PgePktUserConnected::id:
-        getConsole().OLn("CustomPGE::%s(): PgePktUserConnected: %s", __func__, pkt.msg.userConnected.sUserName);
-        HandleUserConnected(pkt);
-        break;
-    case PgePktUserCmdMove::id:
-        // not handled by clients
-        getConsole().EOLn("CustomPGE::%s(): PgePktUserCmdMove should not be received by any client!", __func__, pkt.pktId);
-        break;
-    default:
-        getConsole().EOLn("CustomPGE::%s(): unknown pktId %d", __func__, pkt.pktId);
-    }
-}
