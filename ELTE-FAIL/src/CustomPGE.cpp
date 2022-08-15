@@ -266,7 +266,7 @@ void CustomPGE::onGameRunning()
 
     if ( box1 != NULL )
     {
-       // box1->getAngleVec().SetY( box1->getAngleVec().getY() + 0.2f );
+       box1->getAngleVec().SetY( box1->getAngleVec().getY() + 0.2f );
     }
 
     if ( input.getKeyboard().isKeyPressed(VK_UP) )
@@ -315,39 +315,76 @@ void CustomPGE::onGameRunning()
         }
     }
 
-    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('3')) )
+    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('3')) )
+    //{
+    //    PRREObject3D* arenaobj = (PRREObject3D*) getPRRE().getObject3DManager().getByFilename("gamedata\\models\\arena\\arena.obj");
+    //    if ( arenaobj != NULL )
+    //    {
+    //        arenaobj->SetRenderingAllowed( !arenaobj->isRenderingAllowed() );
+    //        Sleep(200);
+    //    }
+    //}
+
+    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('w')) )
+    //{
+    //    box1->getPosVec().SetZ( box1->getPosVec().getZ() + 0.01f );
+    //}
+    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('s')) )
+    //{
+    //    box1->getPosVec().SetZ( box1->getPosVec().getZ() - 0.01f );
+    //}
+    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('a')) )
+    //{
+    //    box1->getPosVec().SetX( box1->getPosVec().getX() - 0.01f );
+    //}
+    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('d')) )
+    //{
+    //    box1->getPosVec().SetX( box1->getPosVec().getX() + 0.01f );
+    //}
+    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('i')) )
+    //{
+    //    box1->getPosVec().SetY( box1->getPosVec().getY() + 0.01f );
+    //}
+    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('k')) )
+    //{
+    //    box1->getPosVec().SetY( box1->getPosVec().getY() - 0.01f );
+    //}
+
+    HorizontalDirection horDir = HorizontalDirection::NONE;
+    VerticalDirection verDir = VerticalDirection::NONE;
+    if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('w')))
     {
-        PRREObject3D* arenaobj = (PRREObject3D*) getPRRE().getObject3DManager().getByFilename("gamedata\\models\\arena\\arena.obj");
-        if ( arenaobj != NULL )
-        {
-            arenaobj->SetRenderingAllowed( !arenaobj->isRenderingAllowed() );
-            Sleep(200);
-        }
+        verDir = VerticalDirection::UP;
+    }
+    if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('s')))
+    {
+        verDir = VerticalDirection::DOWN;
+    }
+    if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('a')))
+    {
+        horDir = HorizontalDirection::LEFT;
+    }
+    if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('d')))
+    {
+        horDir = HorizontalDirection::RIGHT;
     }
 
-    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('w')) )
+    if ((horDir != HorizontalDirection::NONE) || (verDir != VerticalDirection::NONE))
     {
-        box1->getPosVec().SetZ( box1->getPosVec().getZ() + 0.01f );
-    }
-    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('s')) )
-    {
-        box1->getPosVec().SetZ( box1->getPosVec().getZ() - 0.01f );
-    }
-    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('a')) )
-    {
-        box1->getPosVec().SetX( box1->getPosVec().getX() - 0.01f );
-    }
-    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('d')) )
-    {
-        box1->getPosVec().SetX( box1->getPosVec().getX() + 0.01f );
-    }
-    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('i')) )
-    {
-        box1->getPosVec().SetY( box1->getPosVec().getY() + 0.01f );
-    }
-    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('k')) )
-    {
-        box1->getPosVec().SetY( box1->getPosVec().getY() - 0.01f );
+        PgePacket pktCmdMove;
+        memset(&pktCmdMove, 0, sizeof(pktCmdMove));
+        pktCmdMove.pktId = PgePktUserCmdMove::id;
+        pktCmdMove.msg.userCmdMove.horDirection = horDir;
+        pktCmdMove.msg.userCmdMove.verDirection = verDir;
+
+        if (isServer())
+        {
+            // TODO
+        }
+        else
+        {
+            SendPacketToServer(pktCmdMove);
+        }
     }
 
     // L for camera Lock
@@ -383,8 +420,10 @@ void CustomPGE::onPacketReceived(const PgePacket& pkt)
         HandleUserConnected(pkt.msg.userConnected);
         break;
     case PgePktUserCmdMove::id:
-        // not handled by clients
-        getConsole().EOLn("CustomPGE::%s(): PgePktUserCmdMove should not be received by any client!", __func__, pkt.pktId);
+        HandleUserCmdMove(pkt.msg.userCmdMove);
+        break;
+    case PgePktUserUpdate::id:
+        HandleUserUpdate(pkt.msg.userUpdate);
         break;
     default:
         getConsole().EOLn("CustomPGE::%s(): unknown pktId %d", __func__, pkt.pktId);
@@ -444,6 +483,94 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
     plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
 
     getPlayers()[pkt.sUserName].pObject3D = plane;
+}
+
+void CustomPGE::HandleUserCmdMove(const PgePktUserCmdMove& pkt)
+{
+    if (!isServer())
+    {
+        getConsole().EOLn("CustomPGE::%s(): should not be received by any client!", __func__);
+        return;
+    }
+    
+    auto it = getPlayers().find(pkt.sUserName);
+    if (getPlayers().end() == it)
+    {
+        getConsole().EOLn("CustomPGE::%s(): failed to find user: %d!", __func__, pkt.sUserName);
+        return;
+    }
+
+    PRREObject3D* obj = it->second.pObject3D;
+    if (!obj)
+    {
+        getConsole().EOLn("CustomPGE::%s(): user %d doesn't have associated Object3D!", __func__, pkt.sUserName);
+        return;
+    }
+
+    if ((pkt.horDirection == HorizontalDirection::NONE) && (pkt.verDirection == VerticalDirection::NONE))
+    {
+        getConsole().EOLn("CustomPGE::%s(): user %d sent invalid cmdMove!", __func__, pkt.sUserName);
+        return;
+    }
+
+    //getConsole().OLn("CustomPGE::%s(): user %s sent valid cmdMove", __func__, pkt.sUserName);
+    switch (pkt.horDirection)
+    {
+    case HorizontalDirection::LEFT:
+        obj->getPosVec().SetX( obj->getPosVec().getX() - 0.01f );
+        break;
+    case HorizontalDirection::RIGHT:
+        obj->getPosVec().SetX(obj->getPosVec().getX() + 0.01f);
+        break;
+    default: /* no-op */
+        break;
+    }
+
+    switch (pkt.verDirection)
+    {
+    case VerticalDirection::DOWN:
+        obj->getPosVec().SetY(obj->getPosVec().getY() - 0.01f);
+        break;
+    case VerticalDirection::UP:
+        obj->getPosVec().SetY(obj->getPosVec().getY() + 0.01f);
+        break;
+    default: /* no-op */
+        break;
+    }
+
+    PgePacket pktUserUpdate;
+    memset(&pktUserUpdate, 0, sizeof(pktUserUpdate));
+    pktUserUpdate.pktId = PgePktUserUpdate::id;
+    strncpy_s(pktUserUpdate.msg.userUpdate.sUserName, 64, pkt.sUserName, 64);
+    pktUserUpdate.msg.userUpdate.pos.x = obj->getPosVec().getX();
+    pktUserUpdate.msg.userUpdate.pos.y = obj->getPosVec().getY();
+    SendPacketToAllClients(pktUserUpdate);
+}
+
+void CustomPGE::HandleUserUpdate(const PgePktUserUpdate& pkt)
+{
+    if (isServer())
+    {
+        getConsole().EOLn("CustomPGE::%s(): should not be received by server!", __func__);
+        return;
+    }
+
+    auto it = getPlayers().find(pkt.sUserName);
+    if (getPlayers().end() == it)
+    {
+        getConsole().EOLn("CustomPGE::%s(): failed to find user: %d!", __func__, pkt.sUserName);
+        return;
+    }
+
+    PRREObject3D* obj = it->second.pObject3D;
+    if (!obj)
+    {
+        getConsole().EOLn("CustomPGE::%s(): user %d doesn't have associated Object3D!", __func__, pkt.sUserName);
+        return;
+    }
+
+    obj->getPosVec().SetX(pkt.pos.x);
+    obj->getPosVec().SetY(pkt.pos.y);
 }
 
 
