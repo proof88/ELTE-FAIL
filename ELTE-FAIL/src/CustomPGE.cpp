@@ -379,7 +379,9 @@ void CustomPGE::onGameRunning()
 
         if (isServer())
         {
-            // TODO
+            // TODO: COMMIT_3_SERVERMOVE
+            // inject this packet to server's queue
+            // server will properly update its own position and send update to all clients too based on current state of HandleUserCmdMove()
         }
         else
         {
@@ -457,6 +459,9 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
 {
     if (isServer())
     {
+        // TODO: COMMIT_SERVER_1_SELFCREATE
+        // check bCurrentClient, if that is true, it should happen only if server self-sent the msg and
+        // getPlayers() is empty!!!! So add a check here for that!
         getConsole().OLn("CustomPGE::%s(): new user %s connected and I'm server", __func__, pkt.sUserName);
     }
     else
@@ -594,10 +599,14 @@ void CustomPGE::HandleUserCmdMove(const PgePktUserCmdMove& pkt)
     pktUserUpdate.msg.userUpdate.pos.x = obj->getPosVec().getX();
     pktUserUpdate.msg.userUpdate.pos.y = obj->getPosVec().getY();
     SendPacketToAllClients(pktUserUpdate);
+    // TODO: COMMIT_3_SERVERMOVE this pkt should be also sent to server as self
+    // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for
+    // server's packet queue!
 }
 
 void CustomPGE::HandleUserUpdate(const PgePktUserUpdate& pkt)
 {
+    // TODO: COMMIT_3_SERVERMOVE this check to be removed
     if (isServer())
     {
         getConsole().EOLn("CustomPGE::%s(): should not be received by server!", __func__);
