@@ -62,6 +62,7 @@ private:
     // ---------------------------------------------------------------------------
 
     void HandleUserConnected(const PgePktUserConnected& pkt);
+    void HandleUserDisconnected(const PgePktUserDisconnected& pkt);
     void HandleUserCmdMove(const PgePktUserCmdMove& pkt);
     void HandleUserUpdate(const PgePktUserUpdate& pkt);
 }; // class CustomPGE

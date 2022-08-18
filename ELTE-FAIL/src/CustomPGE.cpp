@@ -419,6 +419,9 @@ void CustomPGE::onPacketReceived(const PgePacket& pkt)
     case PgePktUserConnected::id:
         HandleUserConnected(pkt.msg.userConnected);
         break;
+    case PgePktUserDisconnected::id:
+        HandleUserDisconnected(pkt.msg.userDisconnected);
+        break;
     case PgePktUserCmdMove::id:
         HandleUserCmdMove(pkt.msg.userCmdMove);
         break;
@@ -476,6 +479,13 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
     }
 
     PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(1, 1);
+    if (!plane)
+    {
+        getConsole().EOLn("CustomPGE::%s(): failed to create object for user %s!", __func__, pkt.sUserName);
+        // TODO: should exit or sg
+        return;
+    }
+
     plane->getPosVec().SetX(0);
     plane->getPosVec().SetZ(2);
     if (strnlen(pkt.sTrollfaceTex, 64) > 0)
@@ -496,6 +506,32 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
     plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
 
     getPlayers()[pkt.sUserName].pObject3D = plane;
+}
+
+void CustomPGE::HandleUserDisconnected(const PgePktUserDisconnected& pkt)
+{
+    if (isServer())
+    {
+        getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm server", __func__, pkt.sUserName);
+    }
+    else
+    {
+        getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm client", __func__, pkt.sUserName);
+    }
+
+    auto it = getPlayers().find(pkt.sUserName);
+    if (getPlayers().end() == it)
+    {
+        getConsole().EOLn("CustomPGE::%s(): failed to find user: %d!", __func__, pkt.sUserName);
+        return;
+    }
+
+    if (it->second.pObject3D)
+    {
+        delete it->second.pObject3D;  // yes, dtor will remove this from its manager too!
+    }
+
+    getPlayers().erase(it);
 }
 
 void CustomPGE::HandleUserCmdMove(const PgePktUserCmdMove& pkt)
