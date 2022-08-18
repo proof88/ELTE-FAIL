@@ -478,7 +478,20 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
     PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(1, 1);
     plane->getPosVec().SetX(0);
     plane->getPosVec().SetZ(2);
-    //plane->getMaterial().setTexture(tex1);
+    if (strnlen(pkt.sTrollfaceTex, 64) > 0)
+    {
+        PRRETexture* const tex = getPRRE().getTextureManager().createFromFile(pkt.sTrollfaceTex);
+        if (tex)
+        {
+            plane->getMaterial().setTexture(tex);
+        }
+        else
+        {
+            getConsole().EOLn("CustomPGE::%s(): failed to load trollface texture %s for user %s!",
+                __func__, pkt.sTrollfaceTex, pkt.sUserName);
+        }
+    }
+    
     plane->setVertexModifyingHabit(PRRE_VMOD_STATIC);
     plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
 
