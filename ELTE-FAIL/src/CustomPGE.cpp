@@ -459,21 +459,33 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
 {
     if (isServer())
     {
-        // TODO: COMMIT_SERVER_1_SELFCREATE
-        // check bCurrentClient, if that is true, it should happen only if server self-sent the msg and
-        // getPlayers() is empty!!!! So add a check here for that!
-        getConsole().OLn("CustomPGE::%s(): new user %s connected and I'm server", __func__, pkt.sUserName);
+        if (pkt.bCurrentClient)
+        {
+            if (getPlayers().size() == 0)
+            {
+                getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me", __func__, pkt.sUserName);
+            }
+            else
+            {
+                // cannot happen
+                getConsole().EOLn("CustomPGE::%s(): user %s connected with bCurrentClient as true but it is not me, CANNOT HAPPEN!", __func__, pkt.sUserName);
+            }
+        }
+        else
+        {
+            getConsole().OLn("CustomPGE::%s(): new remote user %s connected and I'm server", __func__, pkt.sUserName);
+        }
     }
     else
     {
         if (pkt.bCurrentClient)
         {
             getConsole().OLn("CustomPGE::%s(): this is me, my name is %s", __func__, pkt.sUserName);
-            // TODO: set user name for myself
+            // TODO: set user name for myself because it is not shown explicitly anywhere!
         }
         else
         {
-            getConsole().OLn("CustomPGE::%s(): new user %s connected and I'm client", __func__, pkt.sUserName);
+            getConsole().OLn("CustomPGE::%s(): new remote user %s connected and I'm client", __func__, pkt.sUserName);
         }
     }
 
