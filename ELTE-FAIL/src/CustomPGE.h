@@ -58,6 +58,7 @@ protected:
 private:
     PRREObject3D* box1;
     PRREObject3D* box2;
+    std::string sUserName;   /**< User name received from server in PgePktUserConnected (server instance also receives this from itself). */
 
     // ---------------------------------------------------------------------------
 

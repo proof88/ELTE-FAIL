@@ -379,12 +379,15 @@ void CustomPGE::onGameRunning()
 
         if (isServer())
         {
-            // TODO: COMMIT_3_SERVERMOVE
             // inject this packet to server's queue
             // server will properly update its own position and send update to all clients too based on current state of HandleUserCmdMove()
+            // TODO: for sure an inject function would be nice which automatically fills in server username!
+            strncpy_s(pktCmdMove.msg.userCmdMove.sUserName, 64, sUserName.c_str(), 64);
+            getPacketQueue().push_back(pktCmdMove);
         }
         else
         {
+            // here username is not needed since this is sent by client, and server will identify the client anyway based on connection id
             SendPacketToServer(pktCmdMove);
         }
     }
@@ -400,8 +403,6 @@ void CustomPGE::onGameRunning()
     {
         getPRRE().getCamera().getTargetVec().Set( box1->getPosVec().getX(), box1->getPosVec().getY(), box1->getPosVec().getZ() );
     }
-
-
 
     std::stringstream str;
     //str << "MX1: " << changeX << "   MY1: " << changeY;
@@ -464,6 +465,9 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
             if (getPlayers().size() == 0)
             {
                 getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me", __func__, pkt.sUserName);
+                // store our username so we can refer to it anytime later
+                sUserName = pkt.sUserName;
+                //getPRRE().getUImanager().addText("User name: " + sUserName, 10, 30);
             }
             else
             {
@@ -482,7 +486,9 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
         if (pkt.bCurrentClient)
         {
             getConsole().OLn("CustomPGE::%s(): this is me, my name is %s", __func__, pkt.sUserName);
-            // TODO: set user name for myself because it is not shown explicitly anywhere!
+            // store our username so we can refer to it anytime later
+            sUserName = pkt.sUserName;
+            //getPRRE().getUImanager().addText("User name: " + sUserName, 10, 30);
         }
         else
         {
@@ -492,7 +498,7 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
 
     if (getPlayers().end() != getPlayers().find(pkt.sUserName))
     {
-        getConsole().EOLn("CustomPGE::%s(): user %s is already present in players list!", __func__, pkt.sUserName);
+        getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s is already present in players list!", __func__, pkt.sUserName);
         assert(false);
         return;
     }
@@ -613,20 +619,13 @@ void CustomPGE::HandleUserCmdMove(const PgePktUserCmdMove& pkt)
     pktUserUpdate.msg.userUpdate.pos.x = obj->getPosVec().getX();
     pktUserUpdate.msg.userUpdate.pos.y = obj->getPosVec().getY();
     SendPacketToAllClients(pktUserUpdate);
-    // TODO: COMMIT_3_SERVERMOVE this pkt should be also sent to server as self
-    // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for
-    // server's packet queue!
+    // this pkt should be also sent to server as self
+    // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for server's packet queue!
+    getPacketQueue().push_back(pktUserUpdate);
 }
 
 void CustomPGE::HandleUserUpdate(const PgePktUserUpdate& pkt)
 {
-    // TODO: COMMIT_3_SERVERMOVE this check to be removed
-    if (isServer())
-    {
-        getConsole().EOLn("CustomPGE::%s(): should not be received by server!", __func__);
-        return;
-    }
-
     auto it = getPlayers().find(pkt.sUserName);
     if (getPlayers().end() == it)
     {
