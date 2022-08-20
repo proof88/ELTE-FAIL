@@ -469,6 +469,7 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
             {
                 // cannot happen
                 getConsole().EOLn("CustomPGE::%s(): user %s connected with bCurrentClient as true but it is not me, CANNOT HAPPEN!", __func__, pkt.sUserName);
+                assert(false);
             }
         }
         else
@@ -492,6 +493,7 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
     if (getPlayers().end() != getPlayers().find(pkt.sUserName))
     {
         getConsole().EOLn("CustomPGE::%s(): user %s is already present in players list!", __func__, pkt.sUserName);
+        assert(false);
         return;
     }
 
