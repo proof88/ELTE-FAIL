@@ -168,7 +168,6 @@ void CustomPGE::onGameInitialized()
     snail->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
     snail->SetDoubleSided(true);
 
-
     // at this point, we should be safe to delete snail_lm since object's dtor calls material's dtor which doesn't free up the textures
     // however, a mechanism is needed to be implemented to correctly handle this situation.
     // WA1: CopyFromMaterial() should hardcopy the textures also; deleting material should delete its textures too;
@@ -252,17 +251,8 @@ void CustomPGE::onGameRunning()
 
     static bool bCameraLocked = false;
 
-    /*const int oldmx = input.getMouse().getCursorPosX();
-    const int oldmy = input.getMouse().getCursorPosY();*/
-
     input.getMouse().SetCursorPos(window.getX() + window.getWidth()/2,
                                   window.getY() + window.getHeight()/2);
-
-    /*
-    int changeX = oldmx - input.getMouse().getCursorPosX();
-    int changeY = oldmy - input.getMouse().getCursorPosY();
-    pGFX->getCamera().getTargetVec().SetY( pGFX->getCamera().getTargetVec().getY() - changeY / 10.0f );
-    pGFX->getCamera().getTargetVec().SetX( pGFX->getCamera().getTargetVec().getX() - changeX / 10.0f );*/
 
     if ( box1 != NULL )
     {
@@ -323,31 +313,6 @@ void CustomPGE::onGameRunning()
     //        arenaobj->SetRenderingAllowed( !arenaobj->isRenderingAllowed() );
     //        Sleep(200);
     //    }
-    //}
-
-    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('w')) )
-    //{
-    //    box1->getPosVec().SetZ( box1->getPosVec().getZ() + 0.01f );
-    //}
-    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('s')) )
-    //{
-    //    box1->getPosVec().SetZ( box1->getPosVec().getZ() - 0.01f );
-    //}
-    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('a')) )
-    //{
-    //    box1->getPosVec().SetX( box1->getPosVec().getX() - 0.01f );
-    //}
-    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('d')) )
-    //{
-    //    box1->getPosVec().SetX( box1->getPosVec().getX() + 0.01f );
-    //}
-    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('i')) )
-    //{
-    //    box1->getPosVec().SetY( box1->getPosVec().getY() + 0.01f );
-    //}
-    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('k')) )
-    //{
-    //    box1->getPosVec().SetY( box1->getPosVec().getY() - 0.01f );
     //}
 
     HorizontalDirection horDir = HorizontalDirection::NONE;
