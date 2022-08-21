@@ -227,9 +227,9 @@ void CustomPGE::onGameInitialized()
 
     getPRRE().WriteList();
 
-    if (!isServer())
+    if (!getNetwork().isServer())
     {
-        if (!ConnectClient())
+        if (!getNetwork().ConnectClient())
         {
             PGE::showErrorDialog("Client has FAILED to establish connection to the server!");
             assert(false);
@@ -342,18 +342,18 @@ void CustomPGE::onGameRunning()
         pktCmdMove.msg.userCmdMove.horDirection = horDir;
         pktCmdMove.msg.userCmdMove.verDirection = verDir;
 
-        if (isServer())
+        if (getNetwork().isServer())
         {
             // inject this packet to server's queue
             // server will properly update its own position and send update to all clients too based on current state of HandleUserCmdMove()
             // TODO: for sure an inject function would be nice which automatically fills in server username!
             strncpy_s(pktCmdMove.msg.userCmdMove.sUserName, 64, sUserName.c_str(), 64);
-            getPacketQueue().push_back(pktCmdMove);
+            getNetwork().getPacketQueue().push_back(pktCmdMove);
         }
         else
         {
             // here username is not needed since this is sent by client, and server will identify the client anyway based on connection id
-            SendPacketToServer(pktCmdMove);
+            getNetwork().SendPacketToServer(pktCmdMove);
         }
     }
 
@@ -408,7 +408,7 @@ void CustomPGE::onPacketReceived(const PgePacket& pkt)
 */
 void CustomPGE::onGameDestroying()
 {
-    getPlayers().clear();
+    getNetwork().getPlayers().clear();
 
     delete box1;
     box1 = NULL;
@@ -423,11 +423,11 @@ void CustomPGE::onGameDestroying()
 
 void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
 {
-    if (isServer())
+    if (getNetwork().isServer())
     {
         if (pkt.bCurrentClient)
         {
-            if (getPlayers().size() == 0)
+            if (getNetwork().getPlayers().size() == 0)
             {
                 getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me", __func__, pkt.sUserName);
                 // store our username so we can refer to it anytime later
@@ -461,7 +461,7 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
         }
     }
 
-    if (getPlayers().end() != getPlayers().find(pkt.sUserName))
+    if (getNetwork().getPlayers().end() != getNetwork().getPlayers().find(pkt.sUserName))
     {
         getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s is already present in players list!", __func__, pkt.sUserName);
         assert(false);
@@ -495,12 +495,12 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
     plane->setVertexModifyingHabit(PRRE_VMOD_STATIC);
     plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
 
-    getPlayers()[pkt.sUserName].pObject3D = plane;
+    getNetwork().getPlayers()[pkt.sUserName].pObject3D = plane;
 }
 
 void CustomPGE::HandleUserDisconnected(const PgePktUserDisconnected& pkt)
 {
-    if (isServer())
+    if (getNetwork().isServer())
     {
         getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm server", __func__, pkt.sUserName);
     }
@@ -509,8 +509,8 @@ void CustomPGE::HandleUserDisconnected(const PgePktUserDisconnected& pkt)
         getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm client", __func__, pkt.sUserName);
     }
 
-    auto it = getPlayers().find(pkt.sUserName);
-    if (getPlayers().end() == it)
+    auto it = getNetwork().getPlayers().find(pkt.sUserName);
+    if (getNetwork().getPlayers().end() == it)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to find user: %d!", __func__, pkt.sUserName);
         return;
@@ -521,19 +521,19 @@ void CustomPGE::HandleUserDisconnected(const PgePktUserDisconnected& pkt)
         delete it->second.pObject3D;  // yes, dtor will remove this from its manager too!
     }
 
-    getPlayers().erase(it);
+    getNetwork().getPlayers().erase(it);
 }
 
 void CustomPGE::HandleUserCmdMove(const PgePktUserCmdMove& pkt)
 {
-    if (!isServer())
+    if (!getNetwork().isServer())
     {
         getConsole().EOLn("CustomPGE::%s(): should not be received by any client!", __func__);
         return;
     }
     
-    auto it = getPlayers().find(pkt.sUserName);
-    if (getPlayers().end() == it)
+    auto it = getNetwork().getPlayers().find(pkt.sUserName);
+    if (getNetwork().getPlayers().end() == it)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to find user: %d!", __func__, pkt.sUserName);
         return;
@@ -583,16 +583,16 @@ void CustomPGE::HandleUserCmdMove(const PgePktUserCmdMove& pkt)
     strncpy_s(pktUserUpdate.msg.userUpdate.sUserName, 64, pkt.sUserName, 64);
     pktUserUpdate.msg.userUpdate.pos.x = obj->getPosVec().getX();
     pktUserUpdate.msg.userUpdate.pos.y = obj->getPosVec().getY();
-    SendPacketToAllClients(pktUserUpdate);
+    getNetwork().SendPacketToAllClients(pktUserUpdate);
     // this pkt should be also sent to server as self
     // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for server's packet queue!
-    getPacketQueue().push_back(pktUserUpdate);
+    getNetwork().getPacketQueue().push_back(pktUserUpdate);
 }
 
 void CustomPGE::HandleUserUpdate(const PgePktUserUpdate& pkt)
 {
-    auto it = getPlayers().find(pkt.sUserName);
-    if (getPlayers().end() == it)
+    auto it = getNetwork().getPlayers().find(pkt.sUserName);
+    if (getNetwork().getPlayers().end() == it)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to find user: %d!", __func__, pkt.sUserName);
         return;
