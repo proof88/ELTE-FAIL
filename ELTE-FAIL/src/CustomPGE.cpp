@@ -254,6 +254,24 @@ void CustomPGE::onGameRunning()
     input.getMouse().SetCursorPos(window.getX() + window.getWidth()/2,
                                   window.getY() + window.getHeight()/2);
 
+    if (!getNetwork().isServer())
+    {
+        getPRRE().getUImanager().text(
+            "Ping: " + std::to_string(getNetwork().getPing(true)) + " ms",
+            10, 50);
+        getPRRE().getUImanager().text(
+            "Quality: local: " + std::to_string(getNetwork().getQualityLocal(false)) +
+            "; remote: " + std::to_string(getNetwork().getQualityRemote(false)),
+            10, 70);
+        getPRRE().getUImanager().text(
+            "Tx Speed: " + std::to_string(getNetwork().getTxByteRate(false)) +
+            " Bps; Rx Speed: " + std::to_string(getNetwork().getRxByteRate(false)) + " Bps",
+            10, 90);
+        getPRRE().getUImanager().text(
+            "Internal Queue Time: " + std::to_string(getNetwork().getInternalQueueTimeUSecs(false)) + " us",
+            10, 110);
+    }
+
     if ( box1 != NULL )
     {
        box1->getAngleVec().SetY( box1->getAngleVec().getY() + 0.2f );
