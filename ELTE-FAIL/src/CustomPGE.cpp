@@ -432,7 +432,7 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
                 getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me", __func__, pkt.sUserName);
                 // store our username so we can refer to it anytime later
                 sUserName = pkt.sUserName;
-                //getPRRE().getUImanager().addText("User name: " + sUserName, 10, 30);
+                getPRRE().getUImanager().addText("Server, User name: " + sUserName, 10, 30);
             }
             else
             {
@@ -453,7 +453,7 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
             getConsole().OLn("CustomPGE::%s(): this is me, my name is %s", __func__, pkt.sUserName);
             // store our username so we can refer to it anytime later
             sUserName = pkt.sUserName;
-            //getPRRE().getUImanager().addText("User name: " + sUserName, 10, 30);
+            getPRRE().getUImanager().addText("Client, User name: " + sUserName, 10, 30);
         }
         else
         {
