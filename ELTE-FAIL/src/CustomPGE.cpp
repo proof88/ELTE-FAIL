@@ -229,7 +229,7 @@ void CustomPGE::onGameInitialized()
 
     if (!getNetwork().isServer())
     {
-        if (!getNetwork().ConnectClient())
+        if (!getNetwork().ConnectClient("127.0.0.1"))
         {
             PGE::showErrorDialog("Client has FAILED to establish connection to the server!");
             assert(false);
