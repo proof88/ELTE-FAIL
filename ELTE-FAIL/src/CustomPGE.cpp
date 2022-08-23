@@ -227,7 +227,15 @@ void CustomPGE::onGameInitialized()
 
     getPRRE().WriteList();
 
-    if (!getNetwork().isServer())
+    if (getNetwork().isServer())
+    {
+        if (!getNetwork().StartListening())
+        {
+            PGE::showErrorDialog("Server has FAILED to start listening!");
+            assert(false);
+        }
+    }
+    else
     {
         if (!getNetwork().ConnectClient("127.0.0.1"))
         {
@@ -485,6 +493,9 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
         assert(false);
         return;
     }
+
+    // insert user into map using wacky syntax
+    getNetwork().getPlayers()[pkt.sUserName];
 
     PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(1, 1);
     if (!plane)
