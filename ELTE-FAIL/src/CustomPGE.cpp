@@ -434,7 +434,7 @@ void CustomPGE::onPacketReceived(const PgePacket& pkt)
 */
 void CustomPGE::onGameDestroying()
 {
-    getNetwork().getPlayers().clear();
+    m_mapPlayers.clear();
 
     delete box1;
     box1 = NULL;
@@ -453,7 +453,7 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
     {
         if (pkt.bCurrentClient)
         {
-            if (getNetwork().getPlayers().size() == 0)
+            if (m_mapPlayers.size() == 0)
             {
                 getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me", __func__, pkt.sUserName);
                 // store our username so we can refer to it anytime later
@@ -487,7 +487,7 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
         }
     }
 
-    if (getNetwork().getPlayers().end() != getNetwork().getPlayers().find(pkt.sUserName))
+    if (m_mapPlayers.end() != m_mapPlayers.find(pkt.sUserName))
     {
         getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s is already present in players list!", __func__, pkt.sUserName);
         assert(false);
@@ -495,7 +495,7 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
     }
 
     // insert user into map using wacky syntax
-    getNetwork().getPlayers()[pkt.sUserName];
+    m_mapPlayers[pkt.sUserName];
 
     PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(1, 1);
     if (!plane)
@@ -524,7 +524,7 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
     plane->setVertexModifyingHabit(PRRE_VMOD_STATIC);
     plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
 
-    getNetwork().getPlayers()[pkt.sUserName].pObject3D = plane;
+    m_mapPlayers[pkt.sUserName].pObject3D = plane;
 }
 
 void CustomPGE::HandleUserDisconnected(const PgePktUserDisconnected& pkt)
@@ -538,8 +538,8 @@ void CustomPGE::HandleUserDisconnected(const PgePktUserDisconnected& pkt)
         getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm client", __func__, pkt.sUserName);
     }
 
-    auto it = getNetwork().getPlayers().find(pkt.sUserName);
-    if (getNetwork().getPlayers().end() == it)
+    auto it = m_mapPlayers.find(pkt.sUserName);
+    if (m_mapPlayers.end() == it)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to find user: %d!", __func__, pkt.sUserName);
         return;
@@ -550,7 +550,7 @@ void CustomPGE::HandleUserDisconnected(const PgePktUserDisconnected& pkt)
         delete it->second.pObject3D;  // yes, dtor will remove this from its manager too!
     }
 
-    getNetwork().getPlayers().erase(it);
+    m_mapPlayers.erase(it);
 }
 
 void CustomPGE::HandleUserCmdMove(const PgePktUserCmdMove& pkt)
@@ -561,8 +561,8 @@ void CustomPGE::HandleUserCmdMove(const PgePktUserCmdMove& pkt)
         return;
     }
     
-    auto it = getNetwork().getPlayers().find(pkt.sUserName);
-    if (getNetwork().getPlayers().end() == it)
+    auto it = m_mapPlayers.find(pkt.sUserName);
+    if (m_mapPlayers.end() == it)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to find user: %d!", __func__, pkt.sUserName);
         return;
@@ -620,8 +620,8 @@ void CustomPGE::HandleUserCmdMove(const PgePktUserCmdMove& pkt)
 
 void CustomPGE::HandleUserUpdate(const PgePktUserUpdate& pkt)
 {
-    auto it = getNetwork().getPlayers().find(pkt.sUserName);
-    if (getNetwork().getPlayers().end() == it)
+    auto it = m_mapPlayers.find(pkt.sUserName);
+    if (m_mapPlayers.end() == it)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to find user: %d!", __func__, pkt.sUserName);
         return;

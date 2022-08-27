@@ -14,6 +14,11 @@
 #include "BaseConsts.h"    // Constants, macros.
 
 
+struct Player_t
+{
+    PRREObject3D* pObject3D;
+};
+
 
 /**
     The customized game engine class. This handles the game logic. Singleton.
@@ -54,11 +59,11 @@ protected:
         const PgePacket& pkt);          /**< Called when a new network packet is received. */
     virtual void onGameDestroying();    /**< Freeing up game content here. */
 
-
 private:
     PRREObject3D* box1;
     PRREObject3D* box2;
     std::string sUserName;   /**< User name received from server in PgePktUserConnected (server instance also receives this from itself). */
+    std::map<std::string, Player_t> m_mapPlayers;  /**< Connected players. Used by both server and clients. */
 
     // ---------------------------------------------------------------------------
 
