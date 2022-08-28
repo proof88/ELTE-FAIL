@@ -243,6 +243,11 @@ void CustomPGE::onGameInitialized()
 
     if (getNetwork().isServer())
     {
+        // PgePktUserUpdate is also processed by server, but it injects this pkt into its own queue when needed.
+        // PgePktUserUpdate MUST NOT be received by server over network!
+        // PgePktUserUpdate is received only by clients over network!
+        getNetwork().getBlackListedMessages().insert(PgePktUserUpdate::id);
+
         if (!getNetwork().StartListening())
         {
             PGE::showErrorDialog("Server has FAILED to start listening!");
