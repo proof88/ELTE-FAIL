@@ -550,13 +550,15 @@ void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePktUserConnect
             newPktConnected.msg.userConnected.bCurrentClient = true;
             getNetwork().SendPacketToClient(connHandle, newPktConnected);
 
-            // we also send a pkt to the client about the server user, otherwise client won't create the server user
-            // this is useful because in the future in case of dedicated server, there is no user on server side!
-            // so only listen server should create this pkt to the client.
+            // we also send as many PgePktUserConnected pkts to the client as the number of already connected players,
+            // otherwise client won't know about them, so the client will detect them as newly connected users
             newPktConnected.msg.userConnected.bCurrentClient = false;
-            strncpy_s(newPktConnected.msg.userConnected.szUserName, 64, sUserName.c_str(), 64);
-            strncpy_s(newPktConnected.msg.userConnected.szTrollfaceTex, 64, m_mapPlayers[sUserName].m_sTrollface.c_str(), 64);
-            getNetwork().SendPacketToClient(connHandle, newPktConnected);
+            for (const auto& it : m_mapPlayers)
+            {
+                strncpy_s(newPktConnected.msg.userConnected.szUserName, 64, it.first.c_str(), 64);
+                strncpy_s(newPktConnected.msg.userConnected.szTrollfaceTex, 64, it.second.m_sTrollface.c_str(), 64);
+                getNetwork().SendPacketToClient(connHandle, newPktConnected);
+            }
         }
     }
     else
@@ -660,6 +662,7 @@ void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& 
 {
     if (!getNetwork().isServer())
     {
+        // TODO: blacklist this!
         getConsole().EOLn("CustomPGE::%s(): should not be received by any client!", __func__);
         return;
     }
@@ -685,13 +688,13 @@ void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& 
     PRREObject3D* obj = it->second.pObject3D;
     if (!obj)
     {
-        getConsole().EOLn("CustomPGE::%s(): user %d doesn't have associated Object3D!", __func__, sClientUserName.c_str());
+        getConsole().EOLn("CustomPGE::%s(): user %s doesn't have associated Object3D!", __func__, sClientUserName.c_str());
         return;
     }
 
     if ((pkt.horDirection == HorizontalDirection::NONE) && (pkt.verDirection == VerticalDirection::NONE))
     {
-        getConsole().EOLn("CustomPGE::%s(): user %d sent invalid cmdMove!", __func__, sClientUserName.c_str());
+        getConsole().EOLn("CustomPGE::%s(): user %s sent invalid cmdMove!", __func__, sClientUserName.c_str());
         return;
     }
 
@@ -737,14 +740,14 @@ void CustomPGE::HandleUserUpdate(uint32_t , const PgePktUserUpdate& pkt)
     auto it = m_mapPlayers.find(pkt.szUserName);
     if (m_mapPlayers.end() == it)
     {
-        getConsole().EOLn("CustomPGE::%s(): failed to find user: %d!", __func__, pkt.szUserName);
+        getConsole().EOLn("CustomPGE::%s(): failed to find user: %s!", __func__, pkt.szUserName);
         return;
     }
 
     PRREObject3D* obj = it->second.pObject3D;
     if (!obj)
     {
-        getConsole().EOLn("CustomPGE::%s(): user %d doesn't have associated Object3D!", __func__, pkt.szUserName);
+        getConsole().EOLn("CustomPGE::%s(): user %s doesn't have associated Object3D!", __func__, pkt.szUserName);
         return;
     }
 
