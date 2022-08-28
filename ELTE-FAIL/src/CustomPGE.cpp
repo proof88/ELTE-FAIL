@@ -487,7 +487,8 @@ void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePktUserConnect
 {
     if ((strnlen(pkt.szUserName, 64) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(pkt.szUserName)))
     {
-        getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s is already present in players list!", __func__, pkt.szUserName);
+        getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s (connHandle: %u) is already present in players list!",
+            __func__, pkt.szUserName, connHandle);
         assert(false);
         return;
     }
@@ -510,11 +511,13 @@ void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePktUserConnect
 
         if (pkt.bCurrentClient)
         {
+            // server is processing its own birth
             if (m_mapPlayers.size() == 0)
             {
                 char szNewUserName[64];
                 genUniqueUserName(szNewUserName);
-                getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me", __func__, szNewUserName);
+                getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me (connHandle: %u)",
+                    __func__, szNewUserName, connHandle);
                 // store our username so we can refer to it anytime later
                 sUserName = szNewUserName;
                 szConnectedUserName = szNewUserName;
@@ -523,22 +526,36 @@ void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePktUserConnect
             else
             {
                 // cannot happen
-                getConsole().EOLn("CustomPGE::%s(): user connected with bCurrentClient as true but it is not me, CANNOT HAPPEN!", __func__);
+                getConsole().EOLn("CustomPGE::%s(): user (connHandle: %u) connected with bCurrentClient as true but it is not me, CANNOT HAPPEN!", 
+                   __func__, connHandle);
                 assert(false);
+                return;
             }
         }
         else
         {
-            // TODO: add check: m_mapPlayer.size() must be positive!
+            // server is processing another user's birth
+
+            if (m_mapPlayers.empty())
+            {
+                // cannot happen because at least the user of the server should be in the map!
+                // this should happen only if we are dedicated server but currently only listen-server is supprted!
+                getConsole().EOLn("CustomPGE::%s(): non-server user (connHandle: %u) connected but map of players is still empty, CANNOT HAPPEN!",
+                    __func__, connHandle);
+                assert(false);
+                return;
+            }
 
             char szNewUserName[64];
             genUniqueUserName(szNewUserName);
             szConnectedUserName = szNewUserName;
-            getConsole().OLn("CustomPGE::%s(): new remote user %s connected and I'm server", __func__, szConnectedUserName);
+            getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandle: %u) connected and I'm server",
+                __func__, szConnectedUserName, connHandle);
 
             PgePacket newPktConnected;
             memset(&newPktConnected, 0, sizeof(newPktConnected));
             newPktConnected.pktId = PgePktUserConnected::id;
+            newPktConnected.connHandle = connHandle;
             newPktConnected.msg.userConnected.bCurrentClient = false;
             strncpy_s(newPktConnected.msg.userConnected.szUserName, 64, szConnectedUserName, 64);
             strncpy_s(newPktConnected.msg.userConnected.szTrollfaceTex, 64, sTrollface.c_str(), 64);
@@ -555,6 +572,7 @@ void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePktUserConnect
             newPktConnected.msg.userConnected.bCurrentClient = false;
             for (const auto& it : m_mapPlayers)
             {
+                newPktConnected.connHandle = it.second.m_connHandle;
                 strncpy_s(newPktConnected.msg.userConnected.szUserName, 64, it.first.c_str(), 64);
                 strncpy_s(newPktConnected.msg.userConnected.szTrollfaceTex, 64, it.second.m_sTrollface.c_str(), 64);
                 getNetwork().SendPacketToClient(connHandle, newPktConnected);
@@ -568,14 +586,14 @@ void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePktUserConnect
 
         if (pkt.bCurrentClient)
         {
-            getConsole().OLn("CustomPGE::%s(): this is me, my name is %s", __func__, pkt.szUserName);
+            getConsole().OLn("CustomPGE::%s(): this is me, my name is %s, connHandle: %u", __func__, pkt.szUserName, connHandle);
             // store our username so we can refer to it anytime later
             sUserName = pkt.szUserName;
             getPRRE().getUImanager().addText("Client, User name: " + sUserName, 10, 30);
         }
         else
         {
-            getConsole().OLn("CustomPGE::%s(): new remote user %s connected and I'm client", __func__, pkt.szUserName);
+            getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandle: %u) connected and I'm client", __func__, pkt.szUserName, connHandle);
         }
     }
 
