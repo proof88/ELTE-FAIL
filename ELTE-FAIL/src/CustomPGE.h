@@ -16,6 +16,8 @@
 
 struct Player_t
 {
+    uint32_t m_connHandle;
+    std::string m_sTrollface;
     PRREObject3D* pObject3D;
 };
 
@@ -56,6 +58,7 @@ protected:
     virtual void onGameInitialized();   /**< Loading game content here. */
     virtual void onGameRunning();       /**< Game logic here. */
     virtual void onPacketReceived(
+        uint32_t connHandle,
         const PgePacket& pkt);          /**< Called when a new network packet is received. */
     virtual void onGameDestroying();    /**< Freeing up game content here. */
 
@@ -64,11 +67,13 @@ private:
     PRREObject3D* box2;
     std::string sUserName;   /**< User name received from server in PgePktUserConnected (server instance also receives this from itself). */
     std::map<std::string, Player_t> m_mapPlayers;  /**< Connected players. Used by both server and clients. */
+    std::set<std::string> trollFaces;              /**< Trollface texture file names. Used by server only. */
 
     // ---------------------------------------------------------------------------
 
-    void HandleUserConnected(const PgePktUserConnected& pkt);
-    void HandleUserDisconnected(const PgePktUserDisconnected& pkt);
-    void HandleUserCmdMove(const PgePktUserCmdMove& pkt);
-    void HandleUserUpdate(const PgePktUserUpdate& pkt);
+    void genUniqueUserName(char sNewUserName[64]) const;
+    void HandleUserConnected(uint32_t connHandle, const PgePktUserConnected& pkt);
+    void HandleUserDisconnected(uint32_t connHandle, const PgePktUserDisconnected& pkt);
+    void HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& pkt);
+    void HandleUserUpdate(uint32_t connHandle, const PgePktUserUpdate& pkt);
 }; // class CustomPGE

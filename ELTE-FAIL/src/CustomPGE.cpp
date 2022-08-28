@@ -10,6 +10,8 @@
 #include "CustomPGE.h"
 
 #include <cassert>
+#include <filesystem>  // requires cpp17
+#include <set>
 #include <sstream>
 
 #include "../../../PGE/PGE/PRRE/include/external/PRREuiManager.h"
@@ -219,6 +221,18 @@ void CustomPGE::onGameInitialized()
     delete arena_lm;
     arena_lm = NULL;
     */
+
+    // Gather some trollface pictures for the players
+    // Building this set up initially, each face is removed from the set when assigned to a player, so
+    // all players will have unique face texture assigned.
+    for (const auto& entry : std::filesystem::directory_iterator("gamedata/trollfaces/"))
+    {
+        if ((entry.path().extension().string() == ".bmp"))
+        {
+            trollFaces.insert(entry.path().string());
+        }
+    }
+    CConsole::getConsoleInstance("PGESysNET").OLn("%s() Server parsed %d trollfaces", __func__, trollFaces.size());
     
     getPRRE().getUImanager().addText("almafaALMAFA012345óöüÓÕÛ_+", 10, 10);
 
@@ -373,7 +387,6 @@ void CustomPGE::onGameRunning()
             // inject this packet to server's queue
             // server will properly update its own position and send update to all clients too based on current state of HandleUserCmdMove()
             // TODO: for sure an inject function would be nice which automatically fills in server username!
-            strncpy_s(pktCmdMove.msg.userCmdMove.sUserName, 64, sUserName.c_str(), 64);
             getNetwork().getPacketQueue().push_back(pktCmdMove);
         }
         else
@@ -406,21 +419,21 @@ void CustomPGE::onGameRunning()
 /**
     Called when a new network packet is received.
 */
-void CustomPGE::onPacketReceived(const PgePacket& pkt)
+void CustomPGE::onPacketReceived(uint32_t connHandle, const PgePacket& pkt)
 {
     switch (pkt.pktId)
     {
     case PgePktUserConnected::id:
-        HandleUserConnected(pkt.msg.userConnected);
+        HandleUserConnected(connHandle, pkt.msg.userConnected);
         break;
     case PgePktUserDisconnected::id:
-        HandleUserDisconnected(pkt.msg.userDisconnected);
+        HandleUserDisconnected(connHandle, pkt.msg.userDisconnected);
         break;
     case PgePktUserCmdMove::id:
-        HandleUserCmdMove(pkt.msg.userCmdMove);
+        HandleUserCmdMove(connHandle, pkt.msg.userCmdMove);
         break;
     case PgePktUserUpdate::id:
-        HandleUserUpdate(pkt.msg.userUpdate);
+        HandleUserUpdate(connHandle, pkt.msg.userUpdate);
         break;
     default:
         getConsole().EOLn("CustomPGE::%s(): unknown pktId %d", __func__, pkt.pktId);
@@ -447,33 +460,105 @@ void CustomPGE::onGameDestroying()
 // ############################### PRIVATE ###############################
 
 
-void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
+void CustomPGE::genUniqueUserName(char sNewUserName[64]) const
 {
+    bool found = false;
+    do
+    {
+        sprintf_s(sNewUserName, 64, "User%d", 10000 + (rand() % 100000));
+        for (const auto& client : m_mapPlayers)
+        {
+            found = (client.first == sNewUserName);
+            if (found)
+            {
+                break;
+            }
+        }
+    } while (found);
+}
+
+
+void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePktUserConnected& pkt)
+{
+    if ((strnlen(pkt.sUserName, 64) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(pkt.sUserName)))
+    {
+        getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s is already present in players list!", __func__, pkt.sUserName);
+        assert(false);
+        return;
+    }
+
+    const char* csConnectedUserName = nullptr;
+    std::string sTrollface;
+
     if (getNetwork().isServer())
     {
+        // server doesn't care about pkt.sTrollfaceTex because that is empty
+        if (trollFaces.size() > 0)
+        {
+            sTrollface = *trollFaces.begin();
+            trollFaces.erase(trollFaces.begin());
+        }
+        else
+        {
+            CConsole::getConsoleInstance("PGESysNET").EOLn("%s: SERVER No more trollfaces left for user %s", __func__, csConnectedUserName);
+        }
+
         if (pkt.bCurrentClient)
         {
             if (m_mapPlayers.size() == 0)
             {
-                getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me", __func__, pkt.sUserName);
+                char csNewUserName[64];
+                genUniqueUserName(csNewUserName);
+                getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me", __func__, csNewUserName);
                 // store our username so we can refer to it anytime later
-                sUserName = pkt.sUserName;
+                sUserName = csNewUserName;
+                csConnectedUserName = csNewUserName;
                 getPRRE().getUImanager().addText("Server, User name: " + sUserName, 10, 30);
             }
             else
             {
                 // cannot happen
-                getConsole().EOLn("CustomPGE::%s(): user %s connected with bCurrentClient as true but it is not me, CANNOT HAPPEN!", __func__, pkt.sUserName);
+                getConsole().EOLn("CustomPGE::%s(): user connected with bCurrentClient as true but it is not me, CANNOT HAPPEN!", __func__);
                 assert(false);
             }
         }
         else
         {
-            getConsole().OLn("CustomPGE::%s(): new remote user %s connected and I'm server", __func__, pkt.sUserName);
+            // TODO: add check: m_mapPlayer.size() must be positive!
+
+            char csNewUserName[64];
+            genUniqueUserName(csNewUserName);
+            csConnectedUserName = csNewUserName;
+            getConsole().OLn("CustomPGE::%s(): new remote user %s connected and I'm server", __func__, csConnectedUserName);
+
+            PgePacket newPktConnected;
+            memset(&newPktConnected, 0, sizeof(newPktConnected));
+            newPktConnected.pktId = PgePktUserConnected::id;
+            newPktConnected.msg.userConnected.bCurrentClient = false;
+            strncpy_s(newPktConnected.msg.userConnected.sUserName, 64, csConnectedUserName, 64);
+            strncpy_s(newPktConnected.msg.userConnected.sTrollfaceTex, 64, sTrollface.c_str(), 64);
+
+            // inform all other clients about this new user
+            getNetwork().SendPacketToAllClients(newPktConnected, connHandle);
+
+            // now we send this pkt to the client with this bool flag set so client will know it is their connect
+            newPktConnected.msg.userConnected.bCurrentClient = true;
+            getNetwork().SendPacketToClient(connHandle, newPktConnected);
+
+            // we also send a pkt to the client about the server user, otherwise client won't create the server user
+            // this is useful because in the future in case of dedicated server, there is no user on server side!
+            // so only listen server should create this pkt to the client.
+            newPktConnected.msg.userConnected.bCurrentClient = false;
+            strncpy_s(newPktConnected.msg.userConnected.sUserName, 64, sUserName.c_str(), 64);
+            strncpy_s(newPktConnected.msg.userConnected.sTrollfaceTex, 64, m_mapPlayers[sUserName].m_sTrollface.c_str(), 64);
+            getNetwork().SendPacketToClient(connHandle, newPktConnected);
         }
     }
     else
     {
+        csConnectedUserName = pkt.sUserName;
+        sTrollface = pkt.sTrollfaceTex;
+
         if (pkt.bCurrentClient)
         {
             getConsole().OLn("CustomPGE::%s(): this is me, my name is %s", __func__, pkt.sUserName);
@@ -487,29 +572,25 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
         }
     }
 
-    if (m_mapPlayers.end() != m_mapPlayers.find(pkt.sUserName))
-    {
-        getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s is already present in players list!", __func__, pkt.sUserName);
-        assert(false);
-        return;
-    }
-
     // insert user into map using wacky syntax
-    m_mapPlayers[pkt.sUserName];
+    m_mapPlayers[csConnectedUserName];
+    m_mapPlayers[csConnectedUserName].m_sTrollface = sTrollface;
+    m_mapPlayers[csConnectedUserName].m_connHandle = connHandle;
 
     PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(1, 1);
     if (!plane)
     {
-        getConsole().EOLn("CustomPGE::%s(): failed to create object for user %s!", __func__, pkt.sUserName);
+        getConsole().EOLn("CustomPGE::%s(): failed to create object for user %s!", __func__, csConnectedUserName);
         // TODO: should exit or sg
         return;
     }
 
     plane->getPosVec().SetX(0);
     plane->getPosVec().SetZ(2);
-    if (strnlen(pkt.sTrollfaceTex, 64) > 0)
+
+    if (!sTrollface.empty())
     {
-        PRRETexture* const tex = getPRRE().getTextureManager().createFromFile(pkt.sTrollfaceTex);
+        PRRETexture* const tex = getPRRE().getTextureManager().createFromFile(sTrollface.c_str());
         if (tex)
         {
             plane->getMaterial().setTexture(tex);
@@ -517,71 +598,99 @@ void CustomPGE::HandleUserConnected(const PgePktUserConnected& pkt)
         else
         {
             getConsole().EOLn("CustomPGE::%s(): failed to load trollface texture %s for user %s!",
-                __func__, pkt.sTrollfaceTex, pkt.sUserName);
+                __func__, sTrollface.c_str(), csConnectedUserName);
         }
+    }
+    else
+    {
+        getConsole().EOLn("CustomPGE::%s(): trollface texture name empty for user %s!",
+            __func__, csConnectedUserName);
     }
     
     plane->setVertexModifyingHabit(PRRE_VMOD_STATIC);
     plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
 
-    m_mapPlayers[pkt.sUserName].pObject3D = plane;
+    m_mapPlayers[csConnectedUserName].pObject3D = plane;
 }
 
-void CustomPGE::HandleUserDisconnected(const PgePktUserDisconnected& pkt)
+void CustomPGE::HandleUserDisconnected(uint32_t connHandle, const PgePktUserDisconnected&)
 {
+    auto it = m_mapPlayers.begin();
+    while (it != m_mapPlayers.end())
+    {
+        if (it->second.m_connHandle == connHandle)
+        {
+            break;
+        }
+        it++;
+    }
+
+    if (m_mapPlayers.end() == it)
+    {
+        getConsole().EOLn("CustomPGE::%s(): failed to find user with connHandle: %u!", __func__, connHandle);
+        return;
+    }
+
+    const std::string& sClientUserName = it->first;
+
     if (getNetwork().isServer())
     {
-        getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm server", __func__, pkt.sUserName);
+        getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm server", __func__, sClientUserName.c_str());
     }
     else
     {
-        getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm client", __func__, pkt.sUserName);
-    }
-
-    auto it = m_mapPlayers.find(pkt.sUserName);
-    if (m_mapPlayers.end() == it)
-    {
-        getConsole().EOLn("CustomPGE::%s(): failed to find user: %d!", __func__, pkt.sUserName);
-        return;
+        getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm client", __func__, sClientUserName.c_str());
     }
 
     if (it->second.pObject3D)
     {
         delete it->second.pObject3D;  // yes, dtor will remove this from its manager too!
     }
-
+    
+    trollFaces.insert(it->second.m_sTrollface);  // re-insert the unneeded trollface texture into the set
     m_mapPlayers.erase(it);
 }
 
-void CustomPGE::HandleUserCmdMove(const PgePktUserCmdMove& pkt)
+void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& pkt)
 {
     if (!getNetwork().isServer())
     {
         getConsole().EOLn("CustomPGE::%s(): should not be received by any client!", __func__);
         return;
     }
+
+    auto it = m_mapPlayers.begin();
+    while (it != m_mapPlayers.end())
+    {
+        if (it->second.m_connHandle == connHandle)
+        {
+            break;
+        }
+        it++;
+    }
     
-    auto it = m_mapPlayers.find(pkt.sUserName);
     if (m_mapPlayers.end() == it)
     {
-        getConsole().EOLn("CustomPGE::%s(): failed to find user: %d!", __func__, pkt.sUserName);
+        getConsole().EOLn("CustomPGE::%s(): failed to find user with connHandle: %u!", __func__, connHandle);
         return;
     }
+
+    const std::string& sClientUserName = it->first;
 
     PRREObject3D* obj = it->second.pObject3D;
     if (!obj)
     {
-        getConsole().EOLn("CustomPGE::%s(): user %d doesn't have associated Object3D!", __func__, pkt.sUserName);
+        getConsole().EOLn("CustomPGE::%s(): user %d doesn't have associated Object3D!", __func__, sClientUserName.c_str());
         return;
     }
 
     if ((pkt.horDirection == HorizontalDirection::NONE) && (pkt.verDirection == VerticalDirection::NONE))
     {
-        getConsole().EOLn("CustomPGE::%s(): user %d sent invalid cmdMove!", __func__, pkt.sUserName);
+        getConsole().EOLn("CustomPGE::%s(): user %d sent invalid cmdMove!", __func__, sClientUserName.c_str());
         return;
     }
 
-    //getConsole().OLn("CustomPGE::%s(): user %s sent valid cmdMove", __func__, pkt.sUserName);
+    //getConsole().OLn("CustomPGE::%s(): user %s sent valid cmdMove", __func__, sClientUserName.c_str());
     switch (pkt.horDirection)
     {
     case HorizontalDirection::LEFT:
@@ -609,7 +718,7 @@ void CustomPGE::HandleUserCmdMove(const PgePktUserCmdMove& pkt)
     PgePacket pktUserUpdate;
     memset(&pktUserUpdate, 0, sizeof(pktUserUpdate));
     pktUserUpdate.pktId = PgePktUserUpdate::id;
-    strncpy_s(pktUserUpdate.msg.userUpdate.sUserName, 64, pkt.sUserName, 64);
+    strncpy_s(pktUserUpdate.msg.userUpdate.sUserName, 64, sClientUserName.c_str(), 64);
     pktUserUpdate.msg.userUpdate.pos.x = obj->getPosVec().getX();
     pktUserUpdate.msg.userUpdate.pos.y = obj->getPosVec().getY();
     getNetwork().SendPacketToAllClients(pktUserUpdate);
@@ -618,7 +727,7 @@ void CustomPGE::HandleUserCmdMove(const PgePktUserCmdMove& pkt)
     getNetwork().getPacketQueue().push_back(pktUserUpdate);
 }
 
-void CustomPGE::HandleUserUpdate(const PgePktUserUpdate& pkt)
+void CustomPGE::HandleUserUpdate(uint32_t , const PgePktUserUpdate& pkt)
 {
     auto it = m_mapPlayers.find(pkt.sUserName);
     if (m_mapPlayers.end() == it)
