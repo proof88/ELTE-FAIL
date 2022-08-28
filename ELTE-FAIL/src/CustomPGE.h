@@ -16,7 +16,8 @@
 
 struct Player_t
 {
-    uint32_t m_connHandle;
+    uint32_t m_connHandle;     /**< Used by both server and clients to identify the connection.
+                                    Clients don't use it for direct communication.*/
     std::string m_sTrollface;
     PRREObject3D* pObject3D;
 };
