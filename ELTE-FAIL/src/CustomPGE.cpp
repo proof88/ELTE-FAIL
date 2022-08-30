@@ -256,6 +256,8 @@ void CustomPGE::onGameInitialized()
     }
     else
     {
+        getNetwork().getBlackListedMessages().insert(PgePktUserCmdMove::id);
+
         if (!getNetwork().ConnectClient("127.0.0.1"))
         {
             PGE::showErrorDialog("Client has FAILED to establish connection to the server!");
@@ -678,13 +680,6 @@ void CustomPGE::HandleUserDisconnected(uint32_t connHandle, const PgePktUserDisc
 
 void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& pkt)
 {
-    if (!getNetwork().isServer())
-    {
-        // TODO: blacklist this!
-        getConsole().EOLn("CustomPGE::%s(): should not be received by any client!", __func__);
-        return;
-    }
-
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
     {
