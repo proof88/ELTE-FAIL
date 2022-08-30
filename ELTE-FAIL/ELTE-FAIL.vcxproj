@@ -350,6 +350,8 @@
   <ItemGroup>
     <ClInclude Include="..\..\CConsole\CConsole\src\CConsole.h" />
     <ClInclude Include="..\..\PFL\PFL\PFL.h" />
+    <ClInclude Include="..\..\PGE\PGE\Network\PgeNetwork.h" />
+    <ClInclude Include="..\..\PGE\PGE\Network\PgePacket.h" />
     <ClInclude Include="..\..\PGE\PGE\PGE.h" />
     <ClInclude Include="..\..\PGE\PGE\PGEallHeaders.h" />
     <ClInclude Include="..\..\PGE\PGE\PGEInputHandler.h" />
@@ -389,6 +391,7 @@
     <ClInclude Include="..\..\PGE\PGE\PRRE\include\external\Render\PRRERendererSWincremental.h" />
     <ClInclude Include="src\BaseConsts.h" />
     <ClInclude Include="src\CustomPGE.h" />
+    <ClInclude Include="src\ElteFailPacket.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CustomPGE.cpp" />

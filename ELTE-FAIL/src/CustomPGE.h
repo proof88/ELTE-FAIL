@@ -11,7 +11,9 @@
 
 #include "../../../PGE/PGE/PGE.h" // Using PGE.
 #include "../../../PGE/PGE/PRRE/include/external/Object3D/PRREObject3DManager.h"
+
 #include "BaseConsts.h"    // Constants, macros.
+#include "ElteFailPacket.h"
 
 
 struct Player_t

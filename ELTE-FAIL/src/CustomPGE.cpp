@@ -23,6 +23,8 @@
 
 // ############################### PUBLIC ################################
 
+const uint32_t PgePktUserCmdMove::id;
+const uint32_t PgePktUserUpdate::id;
 
 /**
     Creates and gets the only instance.
@@ -383,23 +385,24 @@ void CustomPGE::onGameRunning()
 
     if ((horDir != HorizontalDirection::NONE) || (verDir != VerticalDirection::NONE))
     {
-        PgePacket pktCmdMove;
-        memset(&pktCmdMove, 0, sizeof(pktCmdMove));
-        pktCmdMove.pktId = PgePktUserCmdMove::id;
-        pktCmdMove.msg.userCmdMove.horDirection = horDir;
-        pktCmdMove.msg.userCmdMove.verDirection = verDir;
+        PgePacket pkt;
+        memset(&pkt, 0, sizeof(pkt));
+        pkt.pktId = PgePktUserCmdMove::id;
+        PgePktUserCmdMove& pktCmdMove = reinterpret_cast<PgePktUserCmdMove&>(pkt.msg.userCustom);
+        pktCmdMove.horDirection = horDir;
+        pktCmdMove.verDirection = verDir;
 
         if (getNetwork().isServer())
         {
             // inject this packet to server's queue
             // server will properly update its own position and send update to all clients too based on current state of HandleUserCmdMove()
             // TODO: for sure an inject function would be nice which automatically fills in server username!
-            getNetwork().getPacketQueue().push_back(pktCmdMove);
+            getNetwork().getPacketQueue().push_back(pkt);
         }
         else
         {
             // here username is not needed since this is sent by client, and server will identify the client anyway based on connection id
-            getNetwork().SendPacketToServer(pktCmdMove);
+            getNetwork().SendPacketToServer(pkt);
         }
     }
 
@@ -437,10 +440,10 @@ void CustomPGE::onPacketReceived(uint32_t connHandle, const PgePacket& pkt)
         HandleUserDisconnected(connHandle, pkt.msg.userDisconnected);
         break;
     case PgePktUserCmdMove::id:
-        HandleUserCmdMove(connHandle, pkt.msg.userCmdMove);
+        HandleUserCmdMove(connHandle, reinterpret_cast<const PgePktUserCmdMove&>(pkt.msg.userCustom));
         break;
     case PgePktUserUpdate::id:
-        HandleUserUpdate(connHandle, pkt.msg.userUpdate);
+        HandleUserUpdate(connHandle, reinterpret_cast<const PgePktUserUpdate&>(pkt.msg.userCustom));
         break;
     default:
         getConsole().EOLn("CustomPGE::%s(): unknown pktId %d", __func__, pkt.pktId);
@@ -678,7 +681,7 @@ void CustomPGE::HandleUserDisconnected(uint32_t connHandle, const PgePktUserDisc
     m_mapPlayers.erase(it);
 }
 
-void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& pkt)
+void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& pktUserCmdMove)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
@@ -705,14 +708,14 @@ void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& 
         return;
     }
 
-    if ((pkt.horDirection == HorizontalDirection::NONE) && (pkt.verDirection == VerticalDirection::NONE))
+    if ((pktUserCmdMove.horDirection == HorizontalDirection::NONE) && (pktUserCmdMove.verDirection == VerticalDirection::NONE))
     {
         getConsole().EOLn("CustomPGE::%s(): user %s sent invalid cmdMove!", __func__, sClientUserName.c_str());
         return;
     }
 
     //getConsole().OLn("CustomPGE::%s(): user %s sent valid cmdMove", __func__, sClientUserName.c_str());
-    switch (pkt.horDirection)
+    switch (pktUserCmdMove.horDirection)
     {
     case HorizontalDirection::LEFT:
         obj->getPosVec().SetX( obj->getPosVec().getX() - 0.01f );
@@ -724,7 +727,7 @@ void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& 
         break;
     }
 
-    switch (pkt.verDirection)
+    switch (pktUserCmdMove.verDirection)
     {
     case VerticalDirection::DOWN:
         obj->getPosVec().SetY(obj->getPosVec().getY() - 0.01f);
@@ -736,16 +739,17 @@ void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& 
         break;
     }
 
-    PgePacket pktUserUpdate;
-    memset(&pktUserUpdate, 0, sizeof(pktUserUpdate));
-    pktUserUpdate.pktId = PgePktUserUpdate::id;
-    strncpy_s(pktUserUpdate.msg.userUpdate.szUserName, 64, sClientUserName.c_str(), 64);
-    pktUserUpdate.msg.userUpdate.pos.x = obj->getPosVec().getX();
-    pktUserUpdate.msg.userUpdate.pos.y = obj->getPosVec().getY();
-    getNetwork().SendPacketToAllClients(pktUserUpdate);
-    // this pkt should be also sent to server as self
+    PgePacket pktOut;
+    memset(&pktOut, 0, sizeof(pktOut));
+    pktOut.pktId = PgePktUserUpdate::id;
+    PgePktUserUpdate& pktUserUpdate = reinterpret_cast<PgePktUserUpdate&>(pktOut.msg.userCustom);
+    strncpy_s(pktUserUpdate.szUserName, 64, sClientUserName.c_str(), 64);
+    pktUserUpdate.pos.x = obj->getPosVec().getX();
+    pktUserUpdate.pos.y = obj->getPosVec().getY();
+    getNetwork().SendPacketToAllClients(pktOut);
+    // this pktUserCmdMove should be also sent to server as self
     // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for server's packet queue!
-    getNetwork().getPacketQueue().push_back(pktUserUpdate);
+    getNetwork().getPacketQueue().push_back(pktOut);
 }
 
 void CustomPGE::HandleUserUpdate(uint32_t , const PgePktUserUpdate& pkt)

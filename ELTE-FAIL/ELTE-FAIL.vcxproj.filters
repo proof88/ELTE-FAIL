@@ -43,6 +43,9 @@
     <Filter Include="Header Files\PGE\PRRE\Object3D">
       <UniqueIdentifier>{79fa05f2-712e-4672-8d9f-b6bd447ad1ff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\PGE\Network">
+      <UniqueIdentifier>{231fcc35-6f09-411c-9855-aca41038ad47}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BaseConsts.h">
@@ -167,6 +170,15 @@
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\PRRE\include\external\PRREuiManager.h">
       <Filter>Header Files\PGE\PRRE</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\Network\PgeNetwork.h">
+      <Filter>Header Files\PGE\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\Network\PgePacket.h">
+      <Filter>Header Files\PGE\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ElteFailPacket.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
