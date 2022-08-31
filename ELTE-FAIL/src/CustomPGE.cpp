@@ -23,8 +23,8 @@
 
 // ############################### PUBLIC ################################
 
-const uint32_t PgePktUserCmdMove::id;
-const uint32_t PgePktUserUpdate::id;
+const ElteFailMsg::ElteFailMsgId ElteFailMsg::MsgUserCmdMove::id;
+const ElteFailMsg::ElteFailMsgId ElteFailMsg::MsgUserUpdate::id;
 
 /**
     Creates and gets the only instance.
@@ -248,7 +248,9 @@ void CustomPGE::onGameInitialized()
         // PgePktUserUpdate is also processed by server, but it injects this pkt into its own queue when needed.
         // PgePktUserUpdate MUST NOT be received by server over network!
         // PgePktUserUpdate is received only by clients over network!
-        getNetwork().getBlackListedMessages().insert(PgePktUserUpdate::id);
+        
+        //TODO: re-enable blacklisting later!
+        //getNetwork().getBlackListedMessages().insert(PgePktUserUpdate::id);
 
         if (!getNetwork().StartListening())
         {
@@ -258,7 +260,8 @@ void CustomPGE::onGameInitialized()
     }
     else
     {
-        getNetwork().getBlackListedMessages().insert(PgePktUserCmdMove::id);
+        //TODO: re-enable blacklisting later!
+        //getNetwork().getBlackListedMessages().insert(PgePktUserCmdMove::id);
 
         if (!getNetwork().ConnectClient("127.0.0.1"))
         {
@@ -364,33 +367,34 @@ void CustomPGE::onGameRunning()
     //    }
     //}
 
-    HorizontalDirection horDir = HorizontalDirection::NONE;
-    VerticalDirection verDir = VerticalDirection::NONE;
+    ElteFailMsg::HorizontalDirection horDir = ElteFailMsg::HorizontalDirection::NONE;
+    ElteFailMsg::VerticalDirection verDir = ElteFailMsg::VerticalDirection::NONE;
     if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('w')))
     {
-        verDir = VerticalDirection::UP;
+        verDir = ElteFailMsg::VerticalDirection::UP;
     }
     if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('s')))
     {
-        verDir = VerticalDirection::DOWN;
+        verDir = ElteFailMsg::VerticalDirection::DOWN;
     }
     if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('a')))
     {
-        horDir = HorizontalDirection::LEFT;
+        horDir = ElteFailMsg::HorizontalDirection::LEFT;
     }
     if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('d')))
     {
-        horDir = HorizontalDirection::RIGHT;
+        horDir = ElteFailMsg::HorizontalDirection::RIGHT;
     }
 
-    if ((horDir != HorizontalDirection::NONE) || (verDir != VerticalDirection::NONE))
+    if ((horDir != ElteFailMsg::HorizontalDirection::NONE) || (verDir != ElteFailMsg::VerticalDirection::NONE))
     {
-        PgePacket pkt;
+        PgePkt::PgePacket pkt;
         memset(&pkt, 0, sizeof(pkt));
-        pkt.pktId = PgePktUserCmdMove::id;
-        PgePktUserCmdMove& pktCmdMove = reinterpret_cast<PgePktUserCmdMove&>(pkt.msg.userCustom);
-        pktCmdMove.horDirection = horDir;
-        pktCmdMove.verDirection = verDir;
+        pkt.pktId = PgePkt::PgePktId::APP;
+        pkt.msg.app.msgId = static_cast<PgePkt::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id);
+        ElteFailMsg::MsgUserCmdMove& msgCmdMove = reinterpret_cast<ElteFailMsg::MsgUserCmdMove&>(pkt.msg.app.cData);
+        msgCmdMove.horDirection = horDir;
+        msgCmdMove.verDirection = verDir;
 
         if (getNetwork().isServer())
         {
@@ -429,24 +433,33 @@ void CustomPGE::onGameRunning()
 /**
     Called when a new network packet is received.
 */
-void CustomPGE::onPacketReceived(uint32_t connHandle, const PgePacket& pkt)
+void CustomPGE::onPacketReceived(uint32_t connHandle, const PgePkt::PgePacket& pkt)
 {
     switch (pkt.pktId)
     {
-    case PgePktUserConnected::id:
+    case PgePkt::PgeMsgUserConnected::id:
         HandleUserConnected(connHandle, pkt.msg.userConnected);
         break;
-    case PgePktUserDisconnected::id:
+    case PgePkt::PgeMsgUserDisconnected::id:
         HandleUserDisconnected(connHandle, pkt.msg.userDisconnected);
         break;
-    case PgePktUserCmdMove::id:
-        HandleUserCmdMove(connHandle, reinterpret_cast<const PgePktUserCmdMove&>(pkt.msg.userCustom));
+    case PgePkt::PgeMsgApp::id:
+    {
+        switch (static_cast<ElteFailMsg::ElteFailMsgId>(pkt.msg.app.msgId))
+        {
+        case ElteFailMsg::MsgUserCmdMove::id:
+            HandleUserCmdMove(connHandle, reinterpret_cast<const ElteFailMsg::MsgUserCmdMove&>(pkt.msg.app.cData));
+            break;
+        case ElteFailMsg::MsgUserUpdate::id:
+            HandleUserUpdate(connHandle, reinterpret_cast<const ElteFailMsg::MsgUserUpdate&>(pkt.msg.app.cData));
+            break;
+        default:
+            getConsole().EOLn("CustomPGE::%s(): unknown msgId %u in PgeMsgApp!", __func__, pkt.pktId);
+        }
         break;
-    case PgePktUserUpdate::id:
-        HandleUserUpdate(connHandle, reinterpret_cast<const PgePktUserUpdate&>(pkt.msg.userCustom));
-        break;
+    }
     default:
-        getConsole().EOLn("CustomPGE::%s(): unknown pktId %d", __func__, pkt.pktId);
+        getConsole().EOLn("CustomPGE::%s(): unknown pktId %u!", __func__, pkt.pktId);
     }
 }
 
@@ -488,7 +501,7 @@ void CustomPGE::genUniqueUserName(char sNewUserName[64]) const
 }
 
 
-void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePktUserConnected& pkt)
+void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePkt::PgeMsgUserConnected& pkt)
 {
     if ((strnlen(pkt.szUserName, 64) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(pkt.szUserName)))
     {
@@ -557,9 +570,9 @@ void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePktUserConnect
             getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandle: %u) connected and I'm server",
                 __func__, szConnectedUserName, connHandle);
 
-            PgePacket newPktConnected;
+            PgePkt::PgePacket newPktConnected;
             memset(&newPktConnected, 0, sizeof(newPktConnected));
-            newPktConnected.pktId = PgePktUserConnected::id;
+            newPktConnected.pktId = PgePkt::PgeMsgUserConnected::id;
             newPktConnected.connHandle = connHandle;
             newPktConnected.msg.userConnected.bCurrentClient = false;
             strncpy_s(newPktConnected.msg.userConnected.szUserName, 64, szConnectedUserName, 64);
@@ -572,7 +585,7 @@ void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePktUserConnect
             newPktConnected.msg.userConnected.bCurrentClient = true;
             getNetwork().SendPacketToClient(connHandle, newPktConnected);
 
-            // we also send as many PgePktUserConnected pkts to the client as the number of already connected players,
+            // we also send as many PgeMsgUserConnected pkts to the client as the number of already connected players,
             // otherwise client won't know about them, so the client will detect them as newly connected users
             newPktConnected.msg.userConnected.bCurrentClient = false;
             for (const auto& it : m_mapPlayers)
@@ -643,7 +656,7 @@ void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePktUserConnect
     m_mapPlayers[szConnectedUserName].pObject3D = plane;
 }
 
-void CustomPGE::HandleUserDisconnected(uint32_t connHandle, const PgePktUserDisconnected&)
+void CustomPGE::HandleUserDisconnected(uint32_t connHandle, const PgePkt::PgeMsgUserDisconnected&)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
@@ -681,7 +694,7 @@ void CustomPGE::HandleUserDisconnected(uint32_t connHandle, const PgePktUserDisc
     m_mapPlayers.erase(it);
 }
 
-void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& pktUserCmdMove)
+void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const ElteFailMsg::MsgUserCmdMove& pktUserCmdMove)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
@@ -708,7 +721,8 @@ void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& 
         return;
     }
 
-    if ((pktUserCmdMove.horDirection == HorizontalDirection::NONE) && (pktUserCmdMove.verDirection == VerticalDirection::NONE))
+    if ((pktUserCmdMove.horDirection == ElteFailMsg::HorizontalDirection::NONE) && 
+        (pktUserCmdMove.verDirection == ElteFailMsg::VerticalDirection::NONE))
     {
         getConsole().EOLn("CustomPGE::%s(): user %s sent invalid cmdMove!", __func__, sClientUserName.c_str());
         return;
@@ -717,10 +731,10 @@ void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& 
     //getConsole().OLn("CustomPGE::%s(): user %s sent valid cmdMove", __func__, sClientUserName.c_str());
     switch (pktUserCmdMove.horDirection)
     {
-    case HorizontalDirection::LEFT:
+    case ElteFailMsg::HorizontalDirection::LEFT:
         obj->getPosVec().SetX( obj->getPosVec().getX() - 0.01f );
         break;
-    case HorizontalDirection::RIGHT:
+    case ElteFailMsg::HorizontalDirection::RIGHT:
         obj->getPosVec().SetX(obj->getPosVec().getX() + 0.01f);
         break;
     default: /* no-op */
@@ -729,30 +743,31 @@ void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& 
 
     switch (pktUserCmdMove.verDirection)
     {
-    case VerticalDirection::DOWN:
+    case ElteFailMsg::VerticalDirection::DOWN:
         obj->getPosVec().SetY(obj->getPosVec().getY() - 0.01f);
         break;
-    case VerticalDirection::UP:
+    case ElteFailMsg::VerticalDirection::UP:
         obj->getPosVec().SetY(obj->getPosVec().getY() + 0.01f);
         break;
     default: /* no-op */
         break;
     }
 
-    PgePacket pktOut;
+    PgePkt::PgePacket pktOut;
     memset(&pktOut, 0, sizeof(pktOut));
-    pktOut.pktId = PgePktUserUpdate::id;
-    PgePktUserUpdate& pktUserUpdate = reinterpret_cast<PgePktUserUpdate&>(pktOut.msg.userCustom);
-    strncpy_s(pktUserUpdate.szUserName, 64, sClientUserName.c_str(), 64);
-    pktUserUpdate.pos.x = obj->getPosVec().getX();
-    pktUserUpdate.pos.y = obj->getPosVec().getY();
+    pktOut.pktId = PgePkt::PgePktId::APP;
+    pktOut.msg.app.msgId = static_cast<PgePkt::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id);
+    ElteFailMsg::MsgUserUpdate& msgUserUpdate = reinterpret_cast<ElteFailMsg::MsgUserUpdate&>(pktOut.msg.app.cData);
+    strncpy_s(msgUserUpdate.szUserName, 64, sClientUserName.c_str(), 64);
+    msgUserUpdate.pos.x = obj->getPosVec().getX();
+    msgUserUpdate.pos.y = obj->getPosVec().getY();
     getNetwork().SendPacketToAllClients(pktOut);
     // this pktUserCmdMove should be also sent to server as self
     // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for server's packet queue!
     getNetwork().getPacketQueue().push_back(pktOut);
 }
 
-void CustomPGE::HandleUserUpdate(uint32_t , const PgePktUserUpdate& pkt)
+void CustomPGE::HandleUserUpdate(uint32_t , const ElteFailMsg::MsgUserUpdate& pkt)
 {
     auto it = m_mapPlayers.find(pkt.szUserName);
     if (m_mapPlayers.end() == it)

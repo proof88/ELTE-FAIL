@@ -62,7 +62,7 @@ protected:
     virtual void onGameRunning();       /**< Game logic here. */
     virtual void onPacketReceived(
         uint32_t connHandle,
-        const PgePacket& pkt);          /**< Called when a new network packet is received. */
+        const PgePkt::PgePacket& pkt);          /**< Called when a new network packet is received. */
     virtual void onGameDestroying();    /**< Freeing up game content here. */
 
 private:
@@ -75,8 +75,8 @@ private:
     // ---------------------------------------------------------------------------
 
     void genUniqueUserName(char sNewUserName[64]) const;
-    void HandleUserConnected(uint32_t connHandle, const PgePktUserConnected& pkt);
-    void HandleUserDisconnected(uint32_t connHandle, const PgePktUserDisconnected& pkt);
-    void HandleUserCmdMove(uint32_t connHandle, const PgePktUserCmdMove& pkt);
-    void HandleUserUpdate(uint32_t connHandle, const PgePktUserUpdate& pkt);
+    void HandleUserConnected(uint32_t connHandle, const PgePkt::PgeMsgUserConnected& pkt);
+    void HandleUserDisconnected(uint32_t connHandle, const PgePkt::PgeMsgUserDisconnected& pkt);
+    void HandleUserCmdMove(uint32_t connHandle, const ElteFailMsg::MsgUserCmdMove& pkt);
+    void HandleUserUpdate(uint32_t connHandle, const ElteFailMsg::MsgUserUpdate& pkt);
 }; // class CustomPGE

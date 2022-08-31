@@ -11,33 +11,46 @@
 
 #include "../../../PGE/PGE/Network/PgePacket.h"
 
-enum class VerticalDirection : std::uint8_t
+namespace ElteFailMsg
 {
-    NONE = 0,
-    UP,
-    DOWN
-};
 
-enum class HorizontalDirection : std::uint8_t
-{
-    NONE = 0,
-    LEFT,
-    RIGHT
-};
+    enum class ElteFailMsgId : PgePkt::TPgeMsgAppMsgId  /* underlying type should be same as type of PgeMsgApp::msgId */
+    {
+        USER_CMD_MOVE = 0,
+        USER_UPDATE
+    };
 
-// clients -> server
-// PgePktUserCmd messages are sent from clients to server, so server will do sg and then update all the clients with PgePktUserUpdate
-struct PgePktUserCmdMove
-{
-    static const uint32_t id = 3;
-    HorizontalDirection horDirection;
-    VerticalDirection verDirection;
-};
+    enum class VerticalDirection : std::uint8_t
+    {
+        NONE = 0,
+        UP,
+        DOWN
+    };
 
-// server -> clients
-struct PgePktUserUpdate
-{
-    static const uint32_t id = 4;
-    char szUserName[64];
-    TXYZ pos;
-};
+    enum class HorizontalDirection : std::uint8_t
+    {
+        NONE = 0,
+        LEFT,
+        RIGHT
+    };
+
+    // clients -> server
+    // MsgUserCmdMove messages are sent from clients to server, so server will do sg and then update all the clients with MsgUserUpdate
+    struct MsgUserCmdMove
+    {
+        static const ElteFailMsgId id = ElteFailMsgId::USER_CMD_MOVE;
+
+        HorizontalDirection horDirection;
+        VerticalDirection verDirection;
+    };
+
+    // server -> clients
+    struct MsgUserUpdate
+    {
+        static const ElteFailMsgId id = ElteFailMsgId::USER_UPDATE;
+
+        char szUserName[64];
+        TXYZ pos;
+    };
+
+} // namespace ElteFailMsg
