@@ -248,9 +248,7 @@ void CustomPGE::onGameInitialized()
         // PgePktUserUpdate is also processed by server, but it injects this pkt into its own queue when needed.
         // PgePktUserUpdate MUST NOT be received by server over network!
         // PgePktUserUpdate is received only by clients over network!
-        
-        //TODO: re-enable blacklisting later!
-        //getNetwork().getBlackListedMessages().insert(PgePktUserUpdate::id);
+        getNetwork().getBlackListedMessages().insert(static_cast<PgePkt::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id));
 
         if (!getNetwork().StartListening())
         {
@@ -260,8 +258,7 @@ void CustomPGE::onGameInitialized()
     }
     else
     {
-        //TODO: re-enable blacklisting later!
-        //getNetwork().getBlackListedMessages().insert(PgePktUserCmdMove::id);
+        getNetwork().getBlackListedMessages().insert(static_cast<PgePkt::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id));
 
         if (!getNetwork().ConnectClient("127.0.0.1"))
         {
