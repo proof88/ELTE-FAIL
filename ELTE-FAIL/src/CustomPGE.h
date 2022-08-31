@@ -18,8 +18,8 @@
 
 struct Player_t
 {
-    uint32_t m_connHandle;     /**< Used by both server and clients to identify the connection.
-                                    Clients don't use it for direct communication.*/
+    PgePkt::PgeNetworkConnectionHandle m_connHandle;     /**< Used by both server and clients to identify the connection.
+                                                      Clients don't use it for direct communication.*/
     std::string m_sTrollface;
     PRREObject3D* pObject3D;
 };
@@ -61,7 +61,7 @@ protected:
     virtual void onGameInitialized();   /**< Loading game content here. */
     virtual void onGameRunning();       /**< Game logic here. */
     virtual void onPacketReceived(
-        uint32_t connHandle,
+        PgePkt::PgeNetworkConnectionHandle connHandle,
         const PgePkt::PgePacket& pkt);          /**< Called when a new network packet is received. */
     virtual void onGameDestroying();    /**< Freeing up game content here. */
 
@@ -75,8 +75,8 @@ private:
     // ---------------------------------------------------------------------------
 
     void genUniqueUserName(char sNewUserName[64]) const;
-    void HandleUserConnected(uint32_t connHandle, const PgePkt::PgeMsgUserConnected& pkt);
-    void HandleUserDisconnected(uint32_t connHandle, const PgePkt::PgeMsgUserDisconnected& pkt);
-    void HandleUserCmdMove(uint32_t connHandle, const ElteFailMsg::MsgUserCmdMove& pkt);
-    void HandleUserUpdate(uint32_t connHandle, const ElteFailMsg::MsgUserUpdate& pkt);
+    void HandleUserConnected(PgePkt::PgeNetworkConnectionHandle connHandle, const PgePkt::PgeMsgUserConnected& pkt);
+    void HandleUserDisconnected(PgePkt::PgeNetworkConnectionHandle connHandle, const PgePkt::PgeMsgUserDisconnected& pkt);
+    void HandleUserCmdMove(PgePkt::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserCmdMove& pkt);
+    void HandleUserUpdate(PgePkt::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserUpdate& pkt);
 }; // class CustomPGE

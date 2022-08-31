@@ -433,7 +433,7 @@ void CustomPGE::onGameRunning()
 /**
     Called when a new network packet is received.
 */
-void CustomPGE::onPacketReceived(uint32_t connHandle, const PgePkt::PgePacket& pkt)
+void CustomPGE::onPacketReceived(PgePkt::PgeNetworkConnectionHandle connHandle, const PgePkt::PgePacket& pkt)
 {
     switch (pkt.pktId)
     {
@@ -501,7 +501,7 @@ void CustomPGE::genUniqueUserName(char sNewUserName[64]) const
 }
 
 
-void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePkt::PgeMsgUserConnected& pkt)
+void CustomPGE::HandleUserConnected(PgePkt::PgeNetworkConnectionHandle connHandle, const PgePkt::PgeMsgUserConnected& pkt)
 {
     if ((strnlen(pkt.szUserName, 64) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(pkt.szUserName)))
     {
@@ -656,7 +656,7 @@ void CustomPGE::HandleUserConnected(uint32_t connHandle, const PgePkt::PgeMsgUse
     m_mapPlayers[szConnectedUserName].pObject3D = plane;
 }
 
-void CustomPGE::HandleUserDisconnected(uint32_t connHandle, const PgePkt::PgeMsgUserDisconnected&)
+void CustomPGE::HandleUserDisconnected(PgePkt::PgeNetworkConnectionHandle connHandle, const PgePkt::PgeMsgUserDisconnected&)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
@@ -694,7 +694,7 @@ void CustomPGE::HandleUserDisconnected(uint32_t connHandle, const PgePkt::PgeMsg
     m_mapPlayers.erase(it);
 }
 
-void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const ElteFailMsg::MsgUserCmdMove& pktUserCmdMove)
+void CustomPGE::HandleUserCmdMove(PgePkt::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserCmdMove& pktUserCmdMove)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
@@ -762,12 +762,12 @@ void CustomPGE::HandleUserCmdMove(uint32_t connHandle, const ElteFailMsg::MsgUse
     msgUserUpdate.pos.x = obj->getPosVec().getX();
     msgUserUpdate.pos.y = obj->getPosVec().getY();
     getNetwork().SendPacketToAllClients(pktOut);
-    // this pktUserCmdMove should be also sent to server as self
+    // this msgUserUpdate should be also sent to server as self
     // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for server's packet queue!
     getNetwork().getPacketQueue().push_back(pktOut);
 }
 
-void CustomPGE::HandleUserUpdate(uint32_t , const ElteFailMsg::MsgUserUpdate& pkt)
+void CustomPGE::HandleUserUpdate(PgePkt::PgeNetworkConnectionHandle, const ElteFailMsg::MsgUserUpdate& pkt)
 {
     auto it = m_mapPlayers.find(pkt.szUserName);
     if (m_mapPlayers.end() == it)
