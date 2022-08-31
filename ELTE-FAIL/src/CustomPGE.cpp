@@ -84,6 +84,9 @@ void CustomPGE::onGameInitializing()
     // CustomPGE (game) logs
     getConsole().SetLoggingState(getLoggerModuleName(), true);
     getConsole().SetLoggingState("PGESysNET", true);
+    getConsole().SetLoggingState("PgeNetwork", true);
+    getConsole().SetLoggingState("PgeServer", true);
+    getConsole().SetLoggingState("PgeClient", true);
 
     // Turn everything on for development only
     getConsole().SetLoggingState("4LLM0DUL3S", true);
@@ -234,7 +237,7 @@ void CustomPGE::onGameInitialized()
             trollFaces.insert(entry.path().string());
         }
     }
-    CConsole::getConsoleInstance("PGESysNET").OLn("%s() Server parsed %d trollfaces", __func__, trollFaces.size());
+    getConsole().OLn("%s() Server parsed %d trollfaces", __func__, trollFaces.size());
     
     getPRRE().getUImanager().addText("almafaALMAFA012345Ûˆ¸”’€_+", 10, 10);
 
@@ -245,12 +248,12 @@ void CustomPGE::onGameInitialized()
 
     if (getNetwork().isServer())
     {
-        // PgePktUserUpdate is also processed by server, but it injects this pkt into its own queue when needed.
-        // PgePktUserUpdate MUST NOT be received by server over network!
-        // PgePktUserUpdate is received only by clients over network!
-        getNetwork().getBlackListedMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id));
+        // MsgUserUpdate is also processed by server, but it injects this pkt into its own queue when needed.
+        // MsgUserUpdate MUST NOT be received by server over network!
+        // MsgUserUpdate is received only by clients over network!
+        getNetwork().getServer().getBlackListedMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id));
 
-        if (!getNetwork().StartListening())
+        if (!getNetwork().getServer().startListening())
         {
             PGE::showErrorDialog("Server has FAILED to start listening!");
             assert(false);
@@ -258,9 +261,9 @@ void CustomPGE::onGameInitialized()
     }
     else
     {
-        getNetwork().getBlackListedMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id));
+        getNetwork().getClient().getBlackListedMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id));
 
-        if (!getNetwork().ConnectClient("127.0.0.1"))
+        if (!getNetwork().getClient().connectToServer("127.0.0.1"))
         {
             PGE::showErrorDialog("Client has FAILED to establish connection to the server!");
             assert(false);
@@ -288,18 +291,18 @@ void CustomPGE::onGameRunning()
     if (!getNetwork().isServer())
     {
         getPRRE().getUImanager().text(
-            "Ping: " + std::to_string(getNetwork().getPing(true)) + " ms",
+            "Ping: " + std::to_string(getNetwork().getClient().getPing(true)) + " ms",
             10, 50);
         getPRRE().getUImanager().text(
-            "Quality: local: " + std::to_string(getNetwork().getQualityLocal(false)) +
-            "; remote: " + std::to_string(getNetwork().getQualityRemote(false)),
+            "Quality: local: " + std::to_string(getNetwork().getClient().getQualityLocal(false)) +
+            "; remote: " + std::to_string(getNetwork().getClient().getQualityRemote(false)),
             10, 70);
         getPRRE().getUImanager().text(
-            "Tx Speed: " + std::to_string(getNetwork().getTxByteRate(false)) +
-            " Bps; Rx Speed: " + std::to_string(getNetwork().getRxByteRate(false)) + " Bps",
+            "Tx Speed: " + std::to_string(getNetwork().getClient().getTxByteRate(false)) +
+            " Bps; Rx Speed: " + std::to_string(getNetwork().getClient().getRxByteRate(false)) + " Bps",
             10, 90);
         getPRRE().getUImanager().text(
-            "Internal Queue Time: " + std::to_string(getNetwork().getInternalQueueTimeUSecs(false)) + " us",
+            "Internal Queue Time: " + std::to_string(getNetwork().getClient().getInternalQueueTimeUSecs(false)) + " us",
             10, 110);
     }
 
@@ -398,12 +401,12 @@ void CustomPGE::onGameRunning()
             // inject this packet to server's queue
             // server will properly update its own position and send update to all clients too based on current state of HandleUserCmdMove()
             // TODO: for sure an inject function would be nice which automatically fills in server username!
-            getNetwork().getPacketQueue().push_back(pkt);
+            getNetwork().getServer().getPacketQueue().push_back(pkt);
         }
         else
         {
             // here username is not needed since this is sent by client, and server will identify the client anyway based on connection id
-            getNetwork().SendPacketToServer(pkt);
+            getNetwork().getClient().SendToServer(pkt);
         }
     }
 
@@ -576,11 +579,11 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             strncpy_s(newPktConnected.msg.userConnected.szTrollfaceTex, 64, sTrollface.c_str(), 64);
 
             // inform all other clients about this new user
-            getNetwork().SendPacketToAllClients(newPktConnected, connHandle);
+            getNetwork().getServer().SendPacketToAllClients(newPktConnected, connHandle);
 
             // now we send this pkt to the client with this bool flag set so client will know it is their connect
             newPktConnected.msg.userConnected.bCurrentClient = true;
-            getNetwork().SendPacketToClient(connHandle, newPktConnected);
+            getNetwork().getServer().SendPacketToClient(connHandle, newPktConnected);
 
             // we also send as many PgeMsgUserConnected pkts to the client as the number of already connected players,
             // otherwise client won't know about them, so the client will detect them as newly connected users
@@ -590,7 +593,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
                 newPktConnected.connHandle = it.second.m_connHandle;
                 strncpy_s(newPktConnected.msg.userConnected.szUserName, 64, it.first.c_str(), 64);
                 strncpy_s(newPktConnected.msg.userConnected.szTrollfaceTex, 64, it.second.m_sTrollface.c_str(), 64);
-                getNetwork().SendPacketToClient(connHandle, newPktConnected);
+                getNetwork().getServer().SendPacketToClient(connHandle, newPktConnected);
             }
         }
     }
@@ -758,10 +761,10 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     strncpy_s(msgUserUpdate.szUserName, 64, sClientUserName.c_str(), 64);
     msgUserUpdate.pos.x = obj->getPosVec().getX();
     msgUserUpdate.pos.y = obj->getPosVec().getY();
-    getNetwork().SendPacketToAllClients(pktOut);
+    getNetwork().getServer().SendPacketToAllClients(pktOut);
     // this msgUserUpdate should be also sent to server as self
     // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for server's packet queue!
-    getNetwork().getPacketQueue().push_back(pktOut);
+    getNetwork().getServer().getPacketQueue().push_back(pktOut);
 }
 
 void CustomPGE::HandleUserUpdate(pge_network::PgeNetworkConnectionHandle, const ElteFailMsg::MsgUserUpdate& pkt)

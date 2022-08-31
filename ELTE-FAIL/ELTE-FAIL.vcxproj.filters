@@ -180,6 +180,12 @@
     <ClInclude Include="src\ElteFailPacket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\Network\PgeClient.h">
+      <Filter>Header Files\PGE\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\Network\PgeServer.h">
+      <Filter>Header Files\PGE\Network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CustomPGE.cpp">
