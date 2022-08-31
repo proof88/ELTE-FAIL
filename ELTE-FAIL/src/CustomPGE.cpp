@@ -248,7 +248,7 @@ void CustomPGE::onGameInitialized()
         // PgePktUserUpdate is also processed by server, but it injects this pkt into its own queue when needed.
         // PgePktUserUpdate MUST NOT be received by server over network!
         // PgePktUserUpdate is received only by clients over network!
-        getNetwork().getBlackListedMessages().insert(static_cast<PgePkt::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id));
+        getNetwork().getBlackListedMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id));
 
         if (!getNetwork().StartListening())
         {
@@ -258,7 +258,7 @@ void CustomPGE::onGameInitialized()
     }
     else
     {
-        getNetwork().getBlackListedMessages().insert(static_cast<PgePkt::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id));
+        getNetwork().getBlackListedMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id));
 
         if (!getNetwork().ConnectClient("127.0.0.1"))
         {
@@ -385,10 +385,10 @@ void CustomPGE::onGameRunning()
 
     if ((horDir != ElteFailMsg::HorizontalDirection::NONE) || (verDir != ElteFailMsg::VerticalDirection::NONE))
     {
-        PgePkt::PgePacket pkt;
+        pge_network::PgePacket pkt;
         memset(&pkt, 0, sizeof(pkt));
-        pkt.pktId = PgePkt::PgePktId::APP;
-        pkt.msg.app.msgId = static_cast<PgePkt::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id);
+        pkt.pktId = pge_network::PgePktId::APP;
+        pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id);
         ElteFailMsg::MsgUserCmdMove& msgCmdMove = reinterpret_cast<ElteFailMsg::MsgUserCmdMove&>(pkt.msg.app.cData);
         msgCmdMove.horDirection = horDir;
         msgCmdMove.verDirection = verDir;
@@ -430,17 +430,17 @@ void CustomPGE::onGameRunning()
 /**
     Called when a new network packet is received.
 */
-void CustomPGE::onPacketReceived(PgePkt::PgeNetworkConnectionHandle connHandle, const PgePkt::PgePacket& pkt)
+void CustomPGE::onPacketReceived(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgePacket& pkt)
 {
     switch (pkt.pktId)
     {
-    case PgePkt::PgeMsgUserConnected::id:
+    case pge_network::PgeMsgUserConnected::id:
         HandleUserConnected(connHandle, pkt.msg.userConnected);
         break;
-    case PgePkt::PgeMsgUserDisconnected::id:
+    case pge_network::PgeMsgUserDisconnected::id:
         HandleUserDisconnected(connHandle, pkt.msg.userDisconnected);
         break;
-    case PgePkt::PgeMsgApp::id:
+    case pge_network::PgeMsgApp::id:
     {
         switch (static_cast<ElteFailMsg::ElteFailMsgId>(pkt.msg.app.msgId))
         {
@@ -498,7 +498,7 @@ void CustomPGE::genUniqueUserName(char sNewUserName[64]) const
 }
 
 
-void CustomPGE::HandleUserConnected(PgePkt::PgeNetworkConnectionHandle connHandle, const PgePkt::PgeMsgUserConnected& pkt)
+void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserConnected& pkt)
 {
     if ((strnlen(pkt.szUserName, 64) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(pkt.szUserName)))
     {
@@ -567,9 +567,9 @@ void CustomPGE::HandleUserConnected(PgePkt::PgeNetworkConnectionHandle connHandl
             getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandle: %u) connected and I'm server",
                 __func__, szConnectedUserName, connHandle);
 
-            PgePkt::PgePacket newPktConnected;
+            pge_network::PgePacket newPktConnected;
             memset(&newPktConnected, 0, sizeof(newPktConnected));
-            newPktConnected.pktId = PgePkt::PgeMsgUserConnected::id;
+            newPktConnected.pktId = pge_network::PgeMsgUserConnected::id;
             newPktConnected.connHandle = connHandle;
             newPktConnected.msg.userConnected.bCurrentClient = false;
             strncpy_s(newPktConnected.msg.userConnected.szUserName, 64, szConnectedUserName, 64);
@@ -653,7 +653,7 @@ void CustomPGE::HandleUserConnected(PgePkt::PgeNetworkConnectionHandle connHandl
     m_mapPlayers[szConnectedUserName].pObject3D = plane;
 }
 
-void CustomPGE::HandleUserDisconnected(PgePkt::PgeNetworkConnectionHandle connHandle, const PgePkt::PgeMsgUserDisconnected&)
+void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserDisconnected&)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
@@ -691,7 +691,7 @@ void CustomPGE::HandleUserDisconnected(PgePkt::PgeNetworkConnectionHandle connHa
     m_mapPlayers.erase(it);
 }
 
-void CustomPGE::HandleUserCmdMove(PgePkt::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserCmdMove& pktUserCmdMove)
+void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserCmdMove& pktUserCmdMove)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
@@ -750,10 +750,10 @@ void CustomPGE::HandleUserCmdMove(PgePkt::PgeNetworkConnectionHandle connHandle,
         break;
     }
 
-    PgePkt::PgePacket pktOut;
+    pge_network::PgePacket pktOut;
     memset(&pktOut, 0, sizeof(pktOut));
-    pktOut.pktId = PgePkt::PgePktId::APP;
-    pktOut.msg.app.msgId = static_cast<PgePkt::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id);
+    pktOut.pktId = pge_network::PgePktId::APP;
+    pktOut.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id);
     ElteFailMsg::MsgUserUpdate& msgUserUpdate = reinterpret_cast<ElteFailMsg::MsgUserUpdate&>(pktOut.msg.app.cData);
     strncpy_s(msgUserUpdate.szUserName, 64, sClientUserName.c_str(), 64);
     msgUserUpdate.pos.x = obj->getPosVec().getX();
@@ -764,7 +764,7 @@ void CustomPGE::HandleUserCmdMove(PgePkt::PgeNetworkConnectionHandle connHandle,
     getNetwork().getPacketQueue().push_back(pktOut);
 }
 
-void CustomPGE::HandleUserUpdate(PgePkt::PgeNetworkConnectionHandle, const ElteFailMsg::MsgUserUpdate& pkt)
+void CustomPGE::HandleUserUpdate(pge_network::PgeNetworkConnectionHandle, const ElteFailMsg::MsgUserUpdate& pkt)
 {
     auto it = m_mapPlayers.find(pkt.szUserName);
     if (m_mapPlayers.end() == it)

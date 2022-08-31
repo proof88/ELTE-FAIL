@@ -18,7 +18,7 @@
 
 struct Player_t
 {
-    PgePkt::PgeNetworkConnectionHandle m_connHandle;     /**< Used by both server and clients to identify the connection.
+    pge_network::PgeNetworkConnectionHandle m_connHandle;     /**< Used by both server and clients to identify the connection.
                                                       Clients don't use it for direct communication.*/
     std::string m_sTrollface;
     PRREObject3D* pObject3D;
@@ -61,8 +61,8 @@ protected:
     virtual void onGameInitialized() override;   /**< Loading game content here. */
     virtual void onGameRunning() override;       /**< Game logic here. */
     virtual void onPacketReceived(
-        PgePkt::PgeNetworkConnectionHandle connHandle,
-        const PgePkt::PgePacket& pkt) override;  /**< Called when a new network packet is received. */
+        pge_network::PgeNetworkConnectionHandle connHandle,
+        const pge_network::PgePacket& pkt) override;  /**< Called when a new network packet is received. */
     virtual void onGameDestroying() override;    /**< Freeing up game content here. */
 
 private:
@@ -75,8 +75,8 @@ private:
     // ---------------------------------------------------------------------------
 
     void genUniqueUserName(char sNewUserName[64]) const;
-    void HandleUserConnected(PgePkt::PgeNetworkConnectionHandle connHandle, const PgePkt::PgeMsgUserConnected& pkt);
-    void HandleUserDisconnected(PgePkt::PgeNetworkConnectionHandle connHandle, const PgePkt::PgeMsgUserDisconnected& pkt);
-    void HandleUserCmdMove(PgePkt::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserCmdMove& pkt);
-    void HandleUserUpdate(PgePkt::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserUpdate& pkt);
+    void HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserConnected& pkt);
+    void HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserDisconnected& pkt);
+    void HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserCmdMove& pkt);
+    void HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserUpdate& pkt);
 }; // class CustomPGE

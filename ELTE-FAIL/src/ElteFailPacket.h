@@ -14,7 +14,7 @@
 namespace ElteFailMsg
 {
 
-    enum class ElteFailMsgId : PgePkt::TPgeMsgAppMsgId  /* underlying type should be same as type of PgeMsgApp::msgId */
+    enum class ElteFailMsgId : pge_network::TPgeMsgAppMsgId  /* underlying type should be same as type of PgeMsgApp::msgId */
     {
         USER_CMD_MOVE = 0,
         USER_UPDATE
