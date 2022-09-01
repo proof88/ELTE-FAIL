@@ -16,7 +16,8 @@ namespace ElteFailMsg
 
     enum class ElteFailMsgId : pge_network::TPgeMsgAppMsgId  /* underlying type should be same as type of PgeMsgApp::msgId */
     {
-        USER_CMD_MOVE = 0,
+        USER_SETUP = 0,
+        USER_CMD_MOVE,
         USER_UPDATE
     };
 
@@ -32,6 +33,16 @@ namespace ElteFailMsg
         NONE = 0,
         LEFT,
         RIGHT
+    };
+
+    // server -> client
+    struct MsgUserSetup
+    {
+        static const ElteFailMsgId id = ElteFailMsgId::USER_SETUP;
+
+        bool bCurrentClient;
+        char szUserName[64];
+        char szTrollfaceTex[64];
     };
 
     // clients -> server

@@ -75,6 +75,7 @@ private:
     // ---------------------------------------------------------------------------
 
     void genUniqueUserName(char sNewUserName[64]) const;
+    void HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserSetup& pkt);
     void HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserConnected& pkt);
     void HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserDisconnected& pkt);
     void HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserCmdMove& pkt);
