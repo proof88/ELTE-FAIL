@@ -286,7 +286,7 @@ void CustomPGE::onGameRunning()
     const PRREWindow& window = getPRRE().getWindow();
     const PGEInputHandler& input = PGEInputHandler::createAndGet();
 
-    static bool bCameraLocked = false;
+    static bool bCameraLocked = true;
 
     input.getMouse().SetCursorPos(window.getX() + window.getWidth()/2,
                                   window.getY() + window.getHeight()/2);
@@ -420,7 +420,17 @@ void CustomPGE::onGameRunning()
 
     if ( bCameraLocked )
     {
-        getPRRE().getCamera().getTargetVec().Set( box1->getPosVec().getX(), box1->getPosVec().getY(), box1->getPosVec().getZ() );
+        //getPRRE().getCamera().getTargetVec().Set( box1->getPosVec().getX(), box1->getPosVec().getY(), box1->getPosVec().getZ() );
+
+        const auto it = m_mapPlayers.find(sUserName);
+        if (it != m_mapPlayers.end())
+        {
+            PRREObject3D* pPlayerObj = it->second.pObject3D;
+            if (pPlayerObj)
+            {
+                getPRRE().getCamera().getTargetVec().Set(pPlayerObj->getPosVec().getX(), pPlayerObj->getPosVec().getY(), pPlayerObj->getPosVec().getZ());
+            }
+        }
     }
 
     std::stringstream str;
@@ -546,6 +556,7 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
         return;
     }
 
+    plane->SetDoubleSided(true);
     plane->getPosVec().SetX(0);
     plane->getPosVec().SetZ(2);
 
@@ -684,6 +695,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         return;
     }
 
+    plane->SetDoubleSided(true);
     plane->getPosVec().SetX(0);
     plane->getPosVec().SetZ(2);
 
