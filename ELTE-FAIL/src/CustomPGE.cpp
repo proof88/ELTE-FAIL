@@ -249,12 +249,12 @@ void CustomPGE::onGameInitialized()
 
     if (getNetwork().isServer())
     {
-        getNetwork().getServer().getBlackListedMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserSetup::id));
+        getNetwork().getServer().getBlackListedAppMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserSetup::id));
 
         // MsgUserUpdate is also processed by server, but it injects this pkt into its own queue when needed.
         // MsgUserUpdate MUST NOT be received by server over network!
         // MsgUserUpdate is received only by clients over network!
-        getNetwork().getServer().getBlackListedMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id));
+        getNetwork().getServer().getBlackListedAppMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id));
 
         if (!getNetwork().getServer().startListening())
         {
@@ -264,7 +264,7 @@ void CustomPGE::onGameInitialized()
     }
     else
     {
-        getNetwork().getClient().getBlackListedMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id));
+        getNetwork().getClient().getBlackListedAppMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id));
 
         if (!getNetwork().getClient().connectToServer("127.0.0.1"))
         {
