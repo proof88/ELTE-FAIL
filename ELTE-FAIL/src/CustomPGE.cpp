@@ -131,7 +131,7 @@ void CustomPGE::onGameInitialized()
     /*    */
     box2 = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\cube.obj");
     box2->setVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
-    box2->getPosVec().SetZ(3); 
+    box2->getPosVec().SetZ(4); 
     
     /*       
     PRREObject3D* const plane1 = getPRRE().getObject3DManager().createPlane(2, 2);
@@ -143,7 +143,8 @@ void CustomPGE::onGameInitialized()
 
     PRREObject3D* const snail = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail.obj");
     snail->SetScaling(0.02f);
-    snail->getPosVec().SetZ(2);  
+    snail->getPosVec().SetX(-1.5f);
+    snail->getPosVec().SetZ(2.7f);  
     
     /* */   
     PRREObject3D* snail_lm = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail_lm.obj");
@@ -248,6 +249,8 @@ void CustomPGE::onGameInitialized()
 
     if (getNetwork().isServer())
     {
+        getNetwork().getServer().getBlackListedMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserSetup::id));
+
         // MsgUserUpdate is also processed by server, but it injects this pkt into its own queue when needed.
         // MsgUserUpdate MUST NOT be received by server over network!
         // MsgUserUpdate is received only by clients over network!
@@ -314,12 +317,10 @@ void CustomPGE::onGameRunning()
     if ( input.getKeyboard().isKeyPressed(VK_UP) )
     {
         getPRRE().getCamera().Move(0.01f);
-        getConsole().OLn("cam Z: %f", getPRRE().getCamera().getPosVec().getZ());
     }
     if ( input.getKeyboard().isKeyPressed(VK_DOWN) )
     {
         getPRRE().getCamera().Move(-0.01f);
-        getConsole().OLn("cam Z: %f", getPRRE().getCamera().getPosVec().getZ());
     }
     if ( input.getKeyboard().isKeyPressed(VK_LEFT) )
     {
@@ -357,15 +358,15 @@ void CustomPGE::onGameRunning()
         }
     }
 
-    //if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('3')) )
-    //{
-    //    PRREObject3D* arenaobj = (PRREObject3D*) getPRRE().getObject3DManager().getByFilename("gamedata\\models\\arena\\arena.obj");
-    //    if ( arenaobj != NULL )
-    //    {
-    //        arenaobj->SetRenderingAllowed( !arenaobj->isRenderingAllowed() );
-    //        Sleep(200);
-    //    }
-    //}
+    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('3')) )
+    {
+        PRREObject3D* arenaobj = (PRREObject3D*) getPRRE().getObject3DManager().getByFilename("gamedata\\models\\arena\\arena.obj");
+        if ( arenaobj != NULL )
+        {
+            arenaobj->SetRenderingAllowed( !arenaobj->isRenderingAllowed() );
+            Sleep(200);
+        }
+    }
 
     ElteFailMsg::HorizontalDirection horDir = ElteFailMsg::HorizontalDirection::NONE;
     ElteFailMsg::VerticalDirection verDir = ElteFailMsg::VerticalDirection::NONE;
@@ -503,52 +504,44 @@ void CustomPGE::genUniqueUserName(char sNewUserName[64]) const
     } while (found);
 }
 
-void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserSetup& pkt)
+void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserSetup& msg)
 {
-    if ((strnlen(pkt.szUserName, 64) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(pkt.szUserName)))
+    if (getNetwork().isServer())
     {
-        getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s (connHandle: %u) is already present in players list!",
-            __func__, pkt.szUserName, connHandle);
+        getConsole().EOLn("CustomPGE::%s(): server received MsgUserSetup, CANNOT HAPPEN!", __func__);
         assert(false);
         return;
     }
 
-    const char* szConnectedUserName = nullptr;
-    std::string sTrollface;
-
-    if (getNetwork().isServer())
+    if ((strnlen(msg.szUserName, 64) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(msg.szUserName)))
     {
-        getConsole().EOLn("CustomPGE::%s(): server received PktUserConnected, CANNOT HAPPEN!", __func__);
+        getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s (connHandle: %u) is already present in players list!",
+            __func__, msg.szUserName, connHandle);
         assert(false);
         return;
+    }
+
+    if (msg.bCurrentClient)
+    {
+        getConsole().OLn("CustomPGE::%s(): this is me, my name is %s, connHandle: %u", __func__, msg.szUserName, connHandle);
+        // store our username so we can refer to it anytime later
+        sUserName = msg.szUserName;
+        getPRRE().getUImanager().addText("Client, User name: " + sUserName, 10, 30);
     }
     else
     {
-        szConnectedUserName = pkt.szUserName;
-        sTrollface = pkt.szTrollfaceTex;
-
-        if (pkt.bCurrentClient)
-        {
-            getConsole().OLn("CustomPGE::%s(): this is me, my name is %s, connHandle: %u", __func__, pkt.szUserName, connHandle);
-            // store our username so we can refer to it anytime later
-            sUserName = pkt.szUserName;
-            getPRRE().getUImanager().addText("Client, User name: " + sUserName, 10, 30);
-        }
-        else
-        {
-            getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandle: %u) connected and I'm client", __func__, pkt.szUserName, connHandle);
-        }
+        getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandle: %u) connected and I'm client", __func__, msg.szUserName, connHandle);
     }
 
     // insert user into map using wacky syntax
-    m_mapPlayers[szConnectedUserName];
-    m_mapPlayers[szConnectedUserName].m_sTrollface = sTrollface;
-    m_mapPlayers[szConnectedUserName].m_connHandle = connHandle;
+    m_mapPlayers[msg.szUserName];
+    m_mapPlayers[msg.szUserName].m_sTrollface = msg.szTrollfaceTex;
+    m_mapPlayers[msg.szUserName].m_connHandle = connHandle;
 
-    PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(1, 1);
+    PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(0.5f, 0.5f);
     if (!plane)
     {
-        getConsole().EOLn("CustomPGE::%s(): failed to create object for user %s!", __func__, szConnectedUserName);
+        getConsole().EOLn("CustomPGE::%s(): failed to create object for user %s!", __func__, msg.szUserName);
         // TODO: should exit or sg
         return;
     }
@@ -556,9 +549,9 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
     plane->getPosVec().SetX(0);
     plane->getPosVec().SetZ(2);
 
-    if (!sTrollface.empty())
+    if (!m_mapPlayers[msg.szUserName].m_sTrollface.empty())
     {
-        PRRETexture* const tex = getPRRE().getTextureManager().createFromFile(sTrollface.c_str());
+        PRRETexture* const tex = getPRRE().getTextureManager().createFromFile(m_mapPlayers[msg.szUserName].m_sTrollface.c_str());
         if (tex)
         {
             plane->getMaterial().setTexture(tex);
@@ -566,29 +559,29 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
         else
         {
             getConsole().EOLn("CustomPGE::%s(): failed to load trollface texture %s for user %s!",
-                __func__, sTrollface.c_str(), szConnectedUserName);
+                __func__, m_mapPlayers[msg.szUserName].m_sTrollface.c_str(), msg.szUserName);
         }
     }
     else
     {
         getConsole().EOLn("CustomPGE::%s(): trollface texture name empty for user %s!",
-            __func__, szConnectedUserName);
+            __func__, msg.szUserName);
     }
 
     plane->setVertexModifyingHabit(PRRE_VMOD_STATIC);
     plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
 
-    m_mapPlayers[szConnectedUserName].pObject3D = plane;
+    m_mapPlayers[msg.szUserName].pObject3D = plane;
 }
 
-void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserConnected& pkt)
+void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserConnected& msg)
 {
     const char* szConnectedUserName = nullptr;
     std::string sTrollface;
 
     if (getNetwork().isServer())
     {
-        // server doesn't care about pkt.sTrollfaceTex because that is empty
+        // server doesn't care about msg.sTrollfaceTex because that is empty
         if (trollFaces.size() > 0)
         {
             sTrollface = *trollFaces.begin();
@@ -599,7 +592,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             CConsole::getConsoleInstance("PGESysNET").EOLn("%s: SERVER No more trollfaces left for user %s", __func__, szConnectedUserName);
         }
 
-        if (pkt.bCurrentClient)
+        if (msg.bCurrentClient)
         {
             // server is processing its own birth
             if (m_mapPlayers.size() == 0)
@@ -655,7 +648,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             // inform all other clients about this new user
             getNetwork().getServer().SendPacketToAllClients(newPktSetup, connHandle);
 
-            // now we send this pkt to the client with this bool flag set so client will know it is their connect
+            // now we send this msg to the client with this bool flag set so client will know it is their connect
             msgUserSetup.bCurrentClient = true;
             getNetwork().getServer().SendPacketToClient(connHandle, newPktSetup);
 
@@ -683,7 +676,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
     m_mapPlayers[szConnectedUserName].m_sTrollface = sTrollface;
     m_mapPlayers[szConnectedUserName].m_connHandle = connHandle;
 
-    PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(1, 1);
+    PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(0.5f, 0.5f);
     if (!plane)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to create object for user %s!", __func__, szConnectedUserName);
@@ -830,24 +823,24 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     getNetwork().getServer().getPacketQueue().push_back(pktOut);
 }
 
-void CustomPGE::HandleUserUpdate(pge_network::PgeNetworkConnectionHandle, const ElteFailMsg::MsgUserUpdate& pkt)
+void CustomPGE::HandleUserUpdate(pge_network::PgeNetworkConnectionHandle, const ElteFailMsg::MsgUserUpdate& msg)
 {
-    auto it = m_mapPlayers.find(pkt.szUserName);
+    auto it = m_mapPlayers.find(msg.szUserName);
     if (m_mapPlayers.end() == it)
     {
-        getConsole().EOLn("CustomPGE::%s(): failed to find user: %s!", __func__, pkt.szUserName);
+        getConsole().EOLn("CustomPGE::%s(): failed to find user: %s!", __func__, msg.szUserName);
         return;
     }
 
     PRREObject3D* obj = it->second.pObject3D;
     if (!obj)
     {
-        getConsole().EOLn("CustomPGE::%s(): user %s doesn't have associated Object3D!", __func__, pkt.szUserName);
+        getConsole().EOLn("CustomPGE::%s(): user %s doesn't have associated Object3D!", __func__, msg.szUserName);
         return;
     }
 
-    obj->getPosVec().SetX(pkt.pos.x);
-    obj->getPosVec().SetY(pkt.pos.y);
+    obj->getPosVec().SetX(msg.pos.x);
+    obj->getPosVec().SetY(msg.pos.y);
 }
 
 

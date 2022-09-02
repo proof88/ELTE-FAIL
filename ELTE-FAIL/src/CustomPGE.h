@@ -75,9 +75,9 @@ private:
     // ---------------------------------------------------------------------------
 
     void genUniqueUserName(char sNewUserName[64]) const;
-    void HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserSetup& pkt);
-    void HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserConnected& pkt);
-    void HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserDisconnected& pkt);
-    void HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserCmdMove& pkt);
-    void HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserUpdate& pkt);
+    void HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserSetup& msg);
+    void HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserConnected& msg);
+    void HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserDisconnected& msg);
+    void HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserCmdMove& msg);
+    void HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserUpdate& msg);
 }; // class CustomPGE
