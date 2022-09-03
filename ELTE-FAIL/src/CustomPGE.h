@@ -74,7 +74,7 @@ private:
 
     // ---------------------------------------------------------------------------
 
-    void genUniqueUserName(char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameLength]) const;
+    void genUniqueUserName(char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameMaxLength]) const;
     void HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserSetup& msg);
     void HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserConnected& msg);
     void HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserDisconnected& msg);

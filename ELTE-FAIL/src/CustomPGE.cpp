@@ -499,12 +499,12 @@ void CustomPGE::onGameDestroying()
 // ############################### PRIVATE ###############################
 
 
-void CustomPGE::genUniqueUserName(char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameLength]) const
+void CustomPGE::genUniqueUserName(char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameMaxLength]) const
 {
     bool found = false;
     do
     {
-        sprintf_s(szNewUserName, ElteFailMsg::MsgUserSetup::nUserNameLength, "User%d", 10000 + (rand() % 100000));
+        sprintf_s(szNewUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, "User%d", 10000 + (rand() % 100000));
         for (const auto& client : m_mapPlayers)
         {
             found = (client.first == szNewUserName);
@@ -525,7 +525,7 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
         return;
     }
 
-    if ((strnlen(msg.szUserName, ElteFailMsg::MsgUserSetup::nUserNameLength) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(msg.szUserName)))
+    if ((strnlen(msg.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(msg.szUserName)))
     {
         getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s (connHandle: %u) is already present in players list!",
             __func__, msg.szUserName, connHandle);
@@ -585,6 +585,8 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
     plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
 
     m_mapPlayers[msg.szUserName].pObject3D = plane;
+
+    getNetwork().WriteList();
 }
 
 void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserConnected& msg)
@@ -614,7 +616,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         // server is processing its own birth
         if (m_mapPlayers.size() == 0)
         {
-            char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameLength];
+            char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameMaxLength];
             genUniqueUserName(szNewUserName);
             getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me (connHandle: %u)",
                 __func__, szNewUserName, connHandle);
@@ -645,7 +647,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             return;
         }
 
-        char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameLength];
+        char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameMaxLength];
         genUniqueUserName(szNewUserName);
         szConnectedUserName = szNewUserName;
         getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandle: %u) connected and I'm server",
@@ -659,8 +661,8 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
 
         ElteFailMsg::MsgUserSetup& msgUserSetup = reinterpret_cast<ElteFailMsg::MsgUserSetup&>(newPktSetup.msg.app.cData);
         msgUserSetup.bCurrentClient = false;
-        strncpy_s(msgUserSetup.szUserName, ElteFailMsg::MsgUserSetup::nUserNameLength, szConnectedUserName, ElteFailMsg::MsgUserSetup::nUserNameLength);
-        strncpy_s(msgUserSetup.szTrollfaceTex, ElteFailMsg::MsgUserSetup::nTrollfaceTexLength, sTrollface.c_str(), sTrollface.length());
+        strncpy_s(msgUserSetup.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, szConnectedUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength);
+        strncpy_s(msgUserSetup.szTrollfaceTex, ElteFailMsg::MsgUserSetup::nTrollfaceTexMaxLength, sTrollface.c_str(), sTrollface.length());
 
         // inform all other clients about this new user
         getNetwork().getServer().SendPacketToAllClients(newPktSetup, connHandle);
@@ -682,12 +684,12 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         for (const auto& it : m_mapPlayers)
         {
             newPktSetup.connHandle = it.second.m_connHandle;
-            strncpy_s(msgUserSetup.szUserName, ElteFailMsg::MsgUserSetup::nUserNameLength, it.first.c_str(), it.first.length());
-            strncpy_s(msgUserSetup.szTrollfaceTex, ElteFailMsg::MsgUserSetup::nTrollfaceTexLength, it.second.m_sTrollface.c_str(), it.second.m_sTrollface.length());
+            strncpy_s(msgUserSetup.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, it.first.c_str(), it.first.length());
+            strncpy_s(msgUserSetup.szTrollfaceTex, ElteFailMsg::MsgUserSetup::nTrollfaceTexMaxLength, it.second.m_sTrollface.c_str(), it.second.m_sTrollface.length());
             getNetwork().getServer().SendPacketToClient(connHandle, newPktSetup);
             
             newPktUserUpdate.connHandle = it.second.m_connHandle;
-            strncpy_s(msgUserUpdate.szUserName, ElteFailMsg::MsgUserSetup::nUserNameLength, it.first.c_str(), it.first.length());
+            strncpy_s(msgUserUpdate.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, it.first.c_str(), it.first.length());
             msgUserUpdate.pos.x = it.second.pObject3D->getPosVec().getX();
             msgUserUpdate.pos.y = it.second.pObject3D->getPosVec().getY();
             getNetwork().getServer().SendPacketToClient(connHandle, newPktUserUpdate);
@@ -734,6 +736,8 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
     plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
 
     m_mapPlayers[szConnectedUserName].pObject3D = plane;
+
+    getNetwork().WriteList();
 }
 
 void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserDisconnected&)
@@ -759,11 +763,13 @@ void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle c
     if (getNetwork().isServer())
     {
         getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm server", __func__, sClientUserName.c_str());
+        getNetwork().WriteList();
         trollFaces.insert(it->second.m_sTrollface);  // re-insert the unneeded trollface texture into the set
     }
     else
     {
         getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm client", __func__, sClientUserName.c_str());
+        getNetwork().WriteList();
     }
 
     if (it->second.pObject3D)
@@ -845,7 +851,7 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     pktOut.pktId = pge_network::PgePktId::APP;
     pktOut.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id);
     ElteFailMsg::MsgUserUpdate& msgUserUpdate = reinterpret_cast<ElteFailMsg::MsgUserUpdate&>(pktOut.msg.app.cData);
-    strncpy_s(msgUserUpdate.szUserName, ElteFailMsg::MsgUserSetup::nUserNameLength, sClientUserName.c_str(), sClientUserName.length());
+    strncpy_s(msgUserUpdate.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, sClientUserName.c_str(), sClientUserName.length());
     msgUserUpdate.pos.x = obj->getPosVec().getX();
     msgUserUpdate.pos.y = obj->getPosVec().getY();
     getNetwork().getServer().SendPacketToAllClients(pktOut);
