@@ -20,11 +20,8 @@
 #include "../../../CConsole/CConsole/src/CConsole.h"
 
 
-
 // ############################### PUBLIC ################################
 
-const ElteFailMsg::ElteFailMsgId ElteFailMsg::MsgUserCmdMove::id;
-const ElteFailMsg::ElteFailMsgId ElteFailMsg::MsgUserUpdate::id;
 
 /**
     Creates and gets the only instance.
@@ -108,30 +105,32 @@ void CustomPGE::onGameInitialized()
 
     PRRETexture* const tex1 = getPRRE().getTextureManager().createFromFile("gamedata\\proba128x128x24.bmp");
 
-    /*  */
-    box1 = getPRRE().getObject3DManager().createBox(1, 1, 1);
-    box1->getPosVec().SetZ(2.0f);
-    box1->getPosVec().SetX(1.5f);
-    box1->SetOccluder(true);
-    box1->SetOcclusionTested(false);
+    {   // create box object internally
+        box1 = getPRRE().getObject3DManager().createBox(1, 1, 1);
+        box1->getPosVec().SetZ(2.0f);
+        box1->getPosVec().SetX(1.5f);
+        box1->SetOccluder(true);
+        box1->SetOcclusionTested(false);
+
+        // since a while this vertex coloring is not working
+        box1->getMaterial().getColors()[0].red = 1.0f;
+        box1->getMaterial().getColors()[0].green = 0.0f;
+        box1->getMaterial().getColors()[0].blue = 0.0f;
+        box1->getMaterial().getColors()[0].alpha = 0.0f;
+        box1->getMaterial().getColors()[9].red = 1.0f;
+        box1->getMaterial().getColors()[9].green = 0.0f;
+        box1->getMaterial().getColors()[9].blue = 0.0f;
+        box1->getMaterial().getColors()[9].alpha = 0.0f;
+
+        box1->getMaterial().setTexture(tex1);
+        box1->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
+    }
     
-    // since a while this vertex coloring is not working
-    box1->getMaterial().getColors()[0].red    = 1.0f;
-    box1->getMaterial().getColors()[0].green  = 0.0f;
-    box1->getMaterial().getColors()[0].blue   = 0.0f;
-    box1->getMaterial().getColors()[0].alpha  = 0.0f;
-    box1->getMaterial().getColors()[9].red    = 1.0f;
-    box1->getMaterial().getColors()[9].green  = 0.0f;
-    box1->getMaterial().getColors()[9].blue   = 0.0f;
-    box1->getMaterial().getColors()[9].alpha  = 0.0f;
-    
-    box1->getMaterial().setTexture(tex1);
-    box1->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);  
-    
-    /*    */
-    box2 = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\cube.obj");
-    box2->setVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
-    box2->getPosVec().SetZ(4); 
+    {   // load box object from file
+        box2 = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\cube.obj");
+        box2->setVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
+        box2->getPosVec().SetZ(4);
+    }
     
     /*       
     PRREObject3D* const plane1 = getPRRE().getObject3DManager().createPlane(2, 2);
@@ -141,47 +140,46 @@ void CustomPGE::onGameInitialized()
     plane1->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
     */
 
-    PRREObject3D* const snail = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail.obj");
-    snail->SetScaling(0.02f);
-    snail->getPosVec().SetX(-1.5f);
-    snail->getPosVec().SetZ(2.7f);  
-    
-    /* */   
-    PRREObject3D* snail_lm = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail_lm.obj");
-    snail_lm->SetScaling(0.02f);
-    snail_lm->Hide();
-     
-    // dealing with lightmaps ...
-    
-    if ( snail->getCount() == snail_lm->getCount() ) 
-    {
-        for (TPRREint i = 0; i < snail->getCount(); i++)
+    {   // snail
+        PRREObject3D* const snail = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail.obj");
+        snail->SetScaling(0.02f);
+        snail->getPosVec().SetX(-1.5f);
+        snail->getPosVec().SetZ(2.7f);
+
+        PRREObject3D* snail_lm = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail_lm.obj");
+        snail_lm->SetScaling(0.02f);
+        snail_lm->Hide();
+
+        // dealing with lightmaps ...
+        if (snail->getCount() == snail_lm->getCount())
         {
-            PRREObject3D* const snailSub = (PRREObject3D*) snail->getAttachedAt(i);
-            // assuming that snail_lm has the same subobjects and vertex count as snail
-            PRREObject3D* const snailLMSub = (PRREObject3D*) snail_lm->getAttachedAt(i);
-            if ( snailSub && snailLMSub )
+            for (TPRREint i = 0; i < snail->getCount(); i++)
             {
-                // copying lightmap data into snail material's 2nd layer
-                snailSub->getMaterial(false).copyFromMaterial(snailLMSub->getMaterial(false), 1, 0);
-                snailSub->getMaterial(false).setBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
+                PRREObject3D* const snailSub = (PRREObject3D*)snail->getAttachedAt(i);
+                // assuming that snail_lm has the same subobjects and vertex count as snail
+                PRREObject3D* const snailLMSub = (PRREObject3D*)snail_lm->getAttachedAt(i);
+                if (snailSub && snailLMSub)
+                {
+                    // copying lightmap data into snail material's 2nd layer
+                    snailSub->getMaterial(false).copyFromMaterial(snailLMSub->getMaterial(false), 1, 0);
+                    snailSub->getMaterial(false).setBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
+                }
             }
         }
-    }
-    else
-    {
-        getConsole().EOLn("snail->getCount() != snail_lm->getCount(): %d != %d", snail->getCount(), snail_lm->getCount());
-    }    
-    
-    snail->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
-    snail->SetDoubleSided(true);
+        else
+        {
+            getConsole().EOLn("snail->getCount() != snail_lm->getCount(): %d != %d", snail->getCount(), snail_lm->getCount());
+        }
 
-    // at this point, we should be safe to delete snail_lm since object's dtor calls material's dtor which doesn't free up the textures
-    // however, a mechanism is needed to be implemented to correctly handle this situation.
-    // WA1: CopyFromMaterial() should hardcopy the textures also; deleting material should delete its textures too;
-    // WA2: (better) textures should maintain refcount. Material deletion would decrement refcount and would effectively delete textures when refcount reaches 0.
-    delete snail_lm;
-    snail_lm = NULL; 
+        snail->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
+        snail->SetDoubleSided(true);
+
+        // at this point, we should be safe to delete snail_lm since object's dtor calls material's dtor which doesn't free up the textures
+        // however, a mechanism is needed to be implemented to correctly handle this situation.
+        // WA1: CopyFromMaterial() should hardcopy the textures also; deleting material should delete its textures too;
+        // WA2: (better) textures should maintain refcount. Material deletion would decrement refcount and would effectively delete textures when refcount reaches 0.
+        delete snail_lm;
+    }
 
     /*
     PRREObject3D* snail_clone = getPRRE().getObject3DManager().createCloned(*snail);
@@ -189,44 +187,43 @@ void CustomPGE::onGameInitialized()
     snail->SetOcclusionTested(false);
     */
 
-    /*         
-    getPRRE().getTextureManager().setDefaultIsoFilteringMode(PRRE_ISO_LINEAR_MIPMAP_LINEAR, PRRE_ISO_LINEAR);
+    {   // arena
+        getPRRE().getTextureManager().setDefaultIsoFilteringMode(PRRE_ISO_LINEAR_MIPMAP_LINEAR, PRRE_ISO_LINEAR);
 
-    PRREObject3D* const arena = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\arena\\arena.obj");
-    arena->SetScaling(0.005f);
-    arena->getPosVec().SetZ(2.f); 
-    arena->getPosVec().SetY(-1.5f);
+        PRREObject3D* const arena = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\arena\\arena.obj");
+        arena->SetScaling(0.002f);
+        arena->getPosVec().SetZ(2.f);
+        arena->getPosVec().SetY(-1.5f);
 
-    PRREObject3D* arena_lm = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\arena\\arena_lm.obj");
-    arena_lm->SetScaling(0.02f);
-    arena_lm->Hide();
+        PRREObject3D* arena_lm = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\arena\\arena_lm.obj");
+        arena_lm->SetScaling(0.02f);
+        arena_lm->Hide();
 
-    // dealing with lightmaps ...
-    if ( arena->getCount() == arena_lm->getCount() ) 
-    {
-        for (TPRREuint i = 0; i < arena->getCount(); i++)
+        // dealing with lightmaps ...
+        if (arena->getCount() == arena_lm->getCount())
         {
-            PRREObject3D* const arenaSub = (PRREObject3D*) arena->getAttachedAt(i);
-            // assuming that arena_lm has the same subobjects and vertex count as arena
-            PRREObject3D* const arenaLMSub = (PRREObject3D*) arena_lm->getAttachedAt(i);
-            if ( arenaSub && arenaLMSub )
+            for (TPRREint i = 0; i < arena->getCount(); i++)
             {
-                // copying lightmap data into snail material's 2nd layer
-                arenaSub->getMaterial(false).copyFromMaterial(arenaLMSub->getMaterial(false), 1, 0);
-                arenaSub->getMaterial(false).setBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
+                PRREObject3D* const arenaSub = (PRREObject3D*)arena->getAttachedAt(i);
+                // assuming that arena_lm has the same subobjects and vertex count as arena
+                PRREObject3D* const arenaLMSub = (PRREObject3D*)arena_lm->getAttachedAt(i);
+                if (arenaSub && arenaLMSub)
+                {
+                    // copying lightmap data into snail material's 2nd layer
+                    arenaSub->getMaterial(false).copyFromMaterial(arenaLMSub->getMaterial(false), 1, 0);
+                    arenaSub->getMaterial(false).setBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
+                }
             }
         }
-    }
-    else
-    {
-        getConsole().EOLn("arena->getCount() != arenaLMSub->getCount(): %d != %d", arena->getCount(), arena_lm->getCount());
-    }
+        else
+        {
+            getConsole().EOLn("arena->getCount() != arenaLMSub->getCount(): %d != %d", arena->getCount(), arena_lm->getCount());
+        }
 
-    arena->setVertexTransferMode(PRRE_VT_DYN_DIR_SVA_GEN);
+        arena->setVertexTransferMode(PRRE_VT_DYN_DIR_SVA_GEN);
 
-    delete arena_lm;
-    arena_lm = NULL;
-    */
+        delete arena_lm;
+    }
 
     // Gather some trollface pictures for the players
     // Building this set up initially, each face is removed from the set when assigned to a player, so
