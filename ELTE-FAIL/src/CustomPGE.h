@@ -18,8 +18,12 @@
 
 struct Player_t
 {
-    pge_network::PgeNetworkConnectionHandle m_connHandle;     /**< Used by both server and clients to identify the connection.
-                                                                   Clients don't use it for direct communication.*/
+    pge_network::PgeNetworkConnectionHandle m_connHandleServerSide;   /**< Used by both server and clients to identify the connection.
+                                                                           Clients don't use it for direct communication.
+                                                                           Note: this is the client's handle on server side!
+                                                                           This is not the same handle as client have for the connection
+                                                                           towards the server! Those connection handles are not related
+                                                                           to each other! */
     std::string m_sTrollface;
     PRREObject3D* pObject3D;
 };
@@ -75,9 +79,10 @@ private:
     // ---------------------------------------------------------------------------
 
     void genUniqueUserName(char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameMaxLength]) const;
-    void HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserSetup& msg);
-    void HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserConnected& msg);
-    void HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserDisconnected& msg);
-    void HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserCmdMove& msg);
-    void HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserUpdate& msg);
+    void WritePlayerList();
+    void HandleUserSetup(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const ElteFailMsg::MsgUserSetup& msg);
+    void HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const pge_network::PgeMsgUserConnected& msg);
+    void HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const pge_network::PgeMsgUserDisconnected& msg);
+    void HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const ElteFailMsg::MsgUserCmdMove& msg);
+    void HandleUserUpdate(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const ElteFailMsg::MsgUserUpdate& msg);
 }; // class CustomPGE

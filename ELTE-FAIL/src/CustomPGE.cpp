@@ -446,28 +446,28 @@ void CustomPGE::onGameRunning()
 /**
     Called when a new network packet is received.
 */
-void CustomPGE::onPacketReceived(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgePacket& pkt)
+void CustomPGE::onPacketReceived(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const pge_network::PgePacket& pkt)
 {
     switch (pkt.pktId)
     {
     case pge_network::PgeMsgUserConnected::id:
-        HandleUserConnected(connHandle, pkt.msg.userConnected);
+        HandleUserConnected(m_connHandleServerSide, pkt.msg.userConnected);
         break;
     case pge_network::PgeMsgUserDisconnected::id:
-        HandleUserDisconnected(connHandle, pkt.msg.userDisconnected);
+        HandleUserDisconnected(m_connHandleServerSide, pkt.msg.userDisconnected);
         break;
     case pge_network::PgeMsgApp::id:
     {
         switch (static_cast<ElteFailMsg::ElteFailMsgId>(pkt.msg.app.msgId))
         {
         case ElteFailMsg::MsgUserSetup::id:
-            HandleUserSetup(connHandle, reinterpret_cast<const ElteFailMsg::MsgUserSetup&>(pkt.msg.app.cData));
+            HandleUserSetup(m_connHandleServerSide, reinterpret_cast<const ElteFailMsg::MsgUserSetup&>(pkt.msg.app.cData));
             break;
         case ElteFailMsg::MsgUserCmdMove::id:
-            HandleUserCmdMove(connHandle, reinterpret_cast<const ElteFailMsg::MsgUserCmdMove&>(pkt.msg.app.cData));
+            HandleUserCmdMove(m_connHandleServerSide, reinterpret_cast<const ElteFailMsg::MsgUserCmdMove&>(pkt.msg.app.cData));
             break;
         case ElteFailMsg::MsgUserUpdate::id:
-            HandleUserUpdate(connHandle, reinterpret_cast<const ElteFailMsg::MsgUserUpdate&>(pkt.msg.app.cData));
+            HandleUserUpdate(m_connHandleServerSide, reinterpret_cast<const ElteFailMsg::MsgUserUpdate&>(pkt.msg.app.cData));
             break;
         default:
             getConsole().EOLn("CustomPGE::%s(): unknown msgId %u in PgeMsgApp!", __func__, pkt.pktId);
@@ -516,7 +516,18 @@ void CustomPGE::genUniqueUserName(char szNewUserName[ElteFailMsg::MsgUserSetup::
     } while (found);
 }
 
-void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserSetup& msg)
+void CustomPGE::WritePlayerList()
+{
+    getConsole().OLnOI("CustomPGE::%s()", __func__);
+    for (const auto& player : m_mapPlayers)
+    {
+        getConsole().OLn("Username: %s; connHandleServerSide: %u; trollFace: %s",
+            player.first.c_str(), player.second.m_connHandleServerSide, player.second.m_sTrollface.c_str());
+    }
+    getConsole().OLnOO("");
+}
+
+void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const ElteFailMsg::MsgUserSetup& msg)
 {
     if (getNetwork().isServer())
     {
@@ -527,28 +538,28 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
 
     if ((strnlen(msg.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(msg.szUserName)))
     {
-        getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s (connHandle: %u) is already present in players list!",
-            __func__, msg.szUserName, connHandle);
+        getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s (m_connHandleServerSide: %u) is already present in players list!",
+            __func__, msg.szUserName, m_connHandleServerSide);
         assert(false);
         return;
     }
 
     if (msg.bCurrentClient)
     {
-        getConsole().OLn("CustomPGE::%s(): this is me, my name is %s, connHandle: %u", __func__, msg.szUserName, connHandle);
+        getConsole().OLn("CustomPGE::%s(): this is me, my name is %s, m_connHandleServerSide: %u", __func__, msg.szUserName, m_connHandleServerSide);
         // store our username so we can refer to it anytime later
         sUserName = msg.szUserName;
         getPRRE().getUImanager().addText("Client, User name: " + sUserName, 10, 30);
     }
     else
     {
-        getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandle: %u) connected and I'm client", __func__, msg.szUserName, connHandle);
+        getConsole().OLn("CustomPGE::%s(): new remote user %s (m_connHandleServerSide: %u) connected and I'm client", __func__, msg.szUserName, m_connHandleServerSide);
     }
 
     // insert user into map using wacky syntax
     m_mapPlayers[msg.szUserName];
     m_mapPlayers[msg.szUserName].m_sTrollface = msg.szTrollfaceTex;
-    m_mapPlayers[msg.szUserName].m_connHandle = connHandle;
+    m_mapPlayers[msg.szUserName].m_connHandleServerSide = m_connHandleServerSide;
 
     PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(0.5f, 0.5f);
     if (!plane)
@@ -587,9 +598,10 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
     m_mapPlayers[msg.szUserName].pObject3D = plane;
 
     getNetwork().WriteList();
+    WritePlayerList();
 }
 
-void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserConnected& msg)
+void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const pge_network::PgeMsgUserConnected& msg)
 {
     if (!getNetwork().isServer())
     {
@@ -618,8 +630,8 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         {
             char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameMaxLength];
             genUniqueUserName(szNewUserName);
-            getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me (connHandle: %u)",
-                __func__, szNewUserName, connHandle);
+            getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me (m_connHandleServerSide: %u)",
+                __func__, szNewUserName, m_connHandleServerSide);
             // store our username so we can refer to it anytime later
             sUserName = szNewUserName;
             szConnectedUserName = szNewUserName;
@@ -628,8 +640,8 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         else
         {
             // cannot happen
-            getConsole().EOLn("CustomPGE::%s(): user (connHandle: %u) connected with bCurrentClient as true but it is not me, CANNOT HAPPEN!", 
-               __func__, connHandle);
+            getConsole().EOLn("CustomPGE::%s(): user (m_connHandleServerSide: %u) connected with bCurrentClient as true but it is not me, CANNOT HAPPEN!", 
+               __func__, m_connHandleServerSide);
             assert(false);
             return;
         }
@@ -641,8 +653,8 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         {
             // cannot happen because at least the user of the server should be in the map!
             // this should happen only if we are dedicated server but currently only listen-server is supported!
-            getConsole().EOLn("CustomPGE::%s(): non-server user (connHandle: %u) connected but map of players is still empty, CANNOT HAPPEN!",
-                __func__, connHandle);
+            getConsole().EOLn("CustomPGE::%s(): non-server user (m_connHandleServerSide: %u) connected but map of players is still empty, CANNOT HAPPEN!",
+                __func__, m_connHandleServerSide);
             assert(false);
             return;
         }
@@ -650,12 +662,12 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameMaxLength];
         genUniqueUserName(szNewUserName);
         szConnectedUserName = szNewUserName;
-        getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandle: %u) connected and I'm server",
-            __func__, szConnectedUserName, connHandle);
+        getConsole().OLn("CustomPGE::%s(): new remote user %s (m_connHandleServerSide: %u) connected and I'm server",
+            __func__, szConnectedUserName, m_connHandleServerSide);
 
         pge_network::PgePacket newPktSetup;
         memset(&newPktSetup, 0, sizeof(newPktSetup));
-        newPktSetup.connHandle = connHandle;
+        newPktSetup.m_connHandleServerSide = m_connHandleServerSide;
         newPktSetup.pktId = pge_network::PgePktId::APP;
         newPktSetup.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserSetup::id);
 
@@ -665,11 +677,11 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         strncpy_s(msgUserSetup.szTrollfaceTex, ElteFailMsg::MsgUserSetup::nTrollfaceTexMaxLength, sTrollface.c_str(), sTrollface.length());
 
         // inform all other clients about this new user
-        getNetwork().getServer().SendPacketToAllClients(newPktSetup, connHandle);
+        getNetwork().getServer().SendPacketToAllClients(newPktSetup, m_connHandleServerSide);
 
         // now we send this msg to the client with this bool flag set so client will know it is their connect
         msgUserSetup.bCurrentClient = true;
-        getNetwork().getServer().SendPacketToClient(connHandle, newPktSetup);
+        getNetwork().getServer().SendPacketToClient(m_connHandleServerSide, newPktSetup);
 
         // we also send as many MsgUserSetup pkts to the client as the number of already connected players,
         // otherwise client won't know about them, so the client will detect them as newly connected users;
@@ -683,23 +695,23 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         ElteFailMsg::MsgUserUpdate& msgUserUpdate = reinterpret_cast<ElteFailMsg::MsgUserUpdate&>(newPktUserUpdate.msg.app.cData);
         for (const auto& it : m_mapPlayers)
         {
-            newPktSetup.connHandle = it.second.m_connHandle;
+            newPktSetup.m_connHandleServerSide = it.second.m_connHandleServerSide;
             strncpy_s(msgUserSetup.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, it.first.c_str(), it.first.length());
             strncpy_s(msgUserSetup.szTrollfaceTex, ElteFailMsg::MsgUserSetup::nTrollfaceTexMaxLength, it.second.m_sTrollface.c_str(), it.second.m_sTrollface.length());
-            getNetwork().getServer().SendPacketToClient(connHandle, newPktSetup);
+            getNetwork().getServer().SendPacketToClient(m_connHandleServerSide, newPktSetup);
             
-            newPktUserUpdate.connHandle = it.second.m_connHandle;
+            newPktUserUpdate.m_connHandleServerSide = it.second.m_connHandleServerSide;
             strncpy_s(msgUserUpdate.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, it.first.c_str(), it.first.length());
             msgUserUpdate.pos.x = it.second.pObject3D->getPosVec().getX();
             msgUserUpdate.pos.y = it.second.pObject3D->getPosVec().getY();
-            getNetwork().getServer().SendPacketToClient(connHandle, newPktUserUpdate);
+            getNetwork().getServer().SendPacketToClient(m_connHandleServerSide, newPktUserUpdate);
         }
     }
 
     // insert user into map using wacky syntax
     m_mapPlayers[szConnectedUserName];
     m_mapPlayers[szConnectedUserName].m_sTrollface = sTrollface;
-    m_mapPlayers[szConnectedUserName].m_connHandle = connHandle;
+    m_mapPlayers[szConnectedUserName].m_connHandleServerSide = m_connHandleServerSide;
 
     PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(0.5f, 0.5f);
     if (!plane)
@@ -738,14 +750,15 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
     m_mapPlayers[szConnectedUserName].pObject3D = plane;
 
     getNetwork().WriteList();
+    WritePlayerList();
 }
 
-void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserDisconnected&)
+void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const pge_network::PgeMsgUserDisconnected&)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
     {
-        if (it->second.m_connHandle == connHandle)
+        if (it->second.m_connHandleServerSide == m_connHandleServerSide)
         {
             break;
         }
@@ -754,7 +767,7 @@ void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle c
 
     if (m_mapPlayers.end() == it)
     {
-        getConsole().EOLn("CustomPGE::%s(): failed to find user with connHandle: %u!", __func__, connHandle);
+        getConsole().EOLn("CustomPGE::%s(): failed to find user with m_connHandleServerSide: %u!", __func__, m_connHandleServerSide);
         return;
     }
 
@@ -763,13 +776,11 @@ void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle c
     if (getNetwork().isServer())
     {
         getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm server", __func__, sClientUserName.c_str());
-        getNetwork().WriteList();
         trollFaces.insert(it->second.m_sTrollface);  // re-insert the unneeded trollface texture into the set
     }
     else
     {
         getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm client", __func__, sClientUserName.c_str());
-        getNetwork().WriteList();
     }
 
     if (it->second.pObject3D)
@@ -778,9 +789,12 @@ void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle c
     }
 
     m_mapPlayers.erase(it);
+
+    getNetwork().WriteList();
+    WritePlayerList();
 }
 
-void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserCmdMove& pktUserCmdMove)
+void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const ElteFailMsg::MsgUserCmdMove& pktUserCmdMove)
 {
     if (!getNetwork().isServer())
     {
@@ -792,7 +806,7 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
     {
-        if (it->second.m_connHandle == connHandle)
+        if (it->second.m_connHandleServerSide == m_connHandleServerSide)
         {
             break;
         }
@@ -801,7 +815,7 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     
     if (m_mapPlayers.end() == it)
     {
-        getConsole().EOLn("CustomPGE::%s(): failed to find user with connHandle: %u!", __func__, connHandle);
+        getConsole().EOLn("CustomPGE::%s(): failed to find user with m_connHandleServerSide: %u!", __func__, m_connHandleServerSide);
         return;
     }
 
