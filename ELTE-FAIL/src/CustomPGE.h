@@ -19,7 +19,7 @@
 struct Player_t
 {
     pge_network::PgeNetworkConnectionHandle m_connHandle;     /**< Used by both server and clients to identify the connection.
-                                                      Clients don't use it for direct communication.*/
+                                                                   Clients don't use it for direct communication.*/
     std::string m_sTrollface;
     PRREObject3D* pObject3D;
 };
@@ -74,7 +74,7 @@ private:
 
     // ---------------------------------------------------------------------------
 
-    void genUniqueUserName(char sNewUserName[64]) const;
+    void genUniqueUserName(char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameLength]) const;
     void HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandle, const ElteFailMsg::MsgUserSetup& msg);
     void HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserConnected& msg);
     void HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandle, const pge_network::PgeMsgUserDisconnected& msg);

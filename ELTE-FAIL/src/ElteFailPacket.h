@@ -35,14 +35,16 @@ namespace ElteFailMsg
         RIGHT
     };
 
-    // server -> client
+    // server -> clients
     struct MsgUserSetup
     {
         static const ElteFailMsgId id = ElteFailMsgId::USER_SETUP;
+        static const uint8_t nUserNameLength = 64;
+        static const uint8_t nTrollfaceTexLength = 64;
 
         bool bCurrentClient;
-        char szUserName[64];
-        char szTrollfaceTex[64];
+        char szUserName[nUserNameLength];
+        char szTrollfaceTex[nTrollfaceTexLength];
     };
 
     // clients -> server
@@ -60,7 +62,7 @@ namespace ElteFailMsg
     {
         static const ElteFailMsgId id = ElteFailMsgId::USER_UPDATE;
 
-        char szUserName[64];
+        char szUserName[MsgUserSetup::nUserNameLength];
         TXYZ pos;
     };
 
