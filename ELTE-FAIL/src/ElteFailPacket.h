@@ -57,7 +57,7 @@ namespace ElteFailMsg
         VerticalDirection verDirection;
     };
 
-    // server -> clients
+    // server -> self and clients
     struct MsgUserUpdate
     {
         static const ElteFailMsgId id = ElteFailMsgId::USER_UPDATE;

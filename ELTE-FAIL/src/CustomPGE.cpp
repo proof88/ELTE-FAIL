@@ -280,7 +280,7 @@ void CustomPGE::onGameInitialized()
 */
 void CustomPGE::onGameRunning()
 {
-    const PRREWindow& window = getPRRE().getWindow();
+    PRREWindow& window = getPRRE().getWindow();
     const PGEInputHandler& input = PGEInputHandler::createAndGet();
 
     static bool bCameraLocked = true;
@@ -309,6 +309,11 @@ void CustomPGE::onGameRunning()
     if ( box1 != NULL )
     {
        box1->getAngleVec().SetY( box1->getAngleVec().getY() + 0.2f );
+    }
+
+    if (input.getKeyboard().isKeyPressed(VK_ESCAPE))
+    {
+        window.Close();
     }
 
     if ( input.getKeyboard().isKeyPressed(VK_UP) )
@@ -851,13 +856,6 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
 
 void CustomPGE::HandleUserUpdate(pge_network::PgeNetworkConnectionHandle, const ElteFailMsg::MsgUserUpdate& msg)
 {
-    if (getNetwork().isServer())
-    {
-        getConsole().EOLn("CustomPGE::%s(): server received MsgUserUpdate, CANNOT HAPPEN!", __func__);
-        assert(false);
-        return;
-    }
-
     auto it = m_mapPlayers.find(msg.szUserName);
     if (m_mapPlayers.end() == it)
     {
