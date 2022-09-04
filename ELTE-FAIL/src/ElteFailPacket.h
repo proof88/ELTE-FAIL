@@ -37,7 +37,7 @@ namespace ElteFailMsg
         RIGHT
     };
 
-    // server -> clients
+    // server -> self (inject) and clients
     struct MsgUserSetup
     {
         static const ElteFailMsgId id = ElteFailMsgId::USER_SETUP;
@@ -102,7 +102,7 @@ namespace ElteFailMsg
         VerticalDirection m_dirVertical;
     };
 
-    // server -> self and clients
+    // server -> self (inject) and clients
     struct MsgUserUpdate
     {
         static const ElteFailMsgId id = ElteFailMsgId::USER_UPDATE;

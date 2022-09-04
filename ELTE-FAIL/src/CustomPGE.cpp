@@ -246,6 +246,9 @@ void CustomPGE::onGameInitialized()
 
     if (getNetwork().isServer())
     {
+        // MsgUserSetup is also processed by server, but it injects this pkt into its own queue when needed.
+        // MsgUserSetup MUST NOT be received by server over network!
+        // MsgUserSetup is received only by clients over network!
         getNetwork().getServer().getBlackListedAppMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserSetup::id));
 
         // MsgUserUpdate is also processed by server, but it injects this pkt into its own queue when needed.
@@ -524,13 +527,6 @@ void CustomPGE::WritePlayerList()
 
 void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const ElteFailMsg::MsgUserSetup& msg)
 {
-    if (getNetwork().isServer())
-    {
-        getConsole().EOLn("CustomPGE::%s(): server received MsgUserSetup, CANNOT HAPPEN!", __func__);
-        assert(false);
-        return;
-    }
-
     if ((strnlen(msg.m_szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(msg.m_szUserName)))
     {
         getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s (connHandleServerSide: %u) is already present in players list!",
@@ -545,11 +541,19 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
             __func__, msg.m_szUserName, connHandleServerSide, msg.m_szIpAddress);
         // store our username so we can refer to it anytime later
         sUserName = msg.m_szUserName;
-        getPRRE().getUImanager().addText("Client, User name: " + sUserName + "; IP: " + msg.m_szIpAddress, 10, 30);
+
+        if (getNetwork().isServer())
+        {
+            getPRRE().getUImanager().addText("Server, User name: " + sUserName, 10, 30);
+        }
+        else
+        {
+            getPRRE().getUImanager().addText("Client, User name: " + sUserName + "; IP: " + msg.m_szIpAddress, 10, 30);
+        }
     }
     else
     {
-        getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandleServerSide: %u; IP: %s) connected and I'm client",
+        getConsole().OLn("CustomPGE::%s(): new user %s (connHandleServerSide: %u; IP: %s) connected",
             __func__, msg.m_szUserName, connHandleServerSide, msg.m_szIpAddress);
     }
 
@@ -603,7 +607,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
 {
     if (!getNetwork().isServer())
     {
-        getConsole().EOLn("CustomPGE::%s(): client received PktUserConnected, CANNOT HAPPEN!", __func__);
+        getConsole().EOLn("CustomPGE::%s(): client received MsgUserConnected, CANNOT HAPPEN!", __func__);
         assert(false);
         return;
     }
@@ -618,7 +622,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
     }
     else
     {
-        CConsole::getConsoleInstance("PGESysNET").EOLn("%s: SERVER No more trollfaces left for user %s", __func__, szConnectedUserName);
+        CConsole::getConsoleInstance("PGESysNET").EOLn("%s: SERVER No more trollfaces left for user with connHandle %u", __func__, connHandleServerSide);
     }
 
     if (msg.bCurrentClient)
@@ -630,10 +634,14 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             genUniqueUserName(szNewUserName);
             getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me (connHandleServerSide: %u)",
                 __func__, szNewUserName, connHandleServerSide);
-            // store our username so we can refer to it anytime later
-            sUserName = szNewUserName;
+
             szConnectedUserName = szNewUserName;
-            getPRRE().getUImanager().addText("Server, User name: " + sUserName, 10, 30);
+
+            pge_network::PgePacket newPktSetup;
+            ElteFailMsg::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, true, szConnectedUserName, sTrollface, msg.szIpAddress);
+
+            // server injects this msg to self so resources for player will be allocated
+            getNetwork().getServer().getPacketQueue().push_back(newPktSetup);
         }
         else
         {
@@ -666,6 +674,9 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         pge_network::PgePacket newPktSetup;
         ElteFailMsg::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, false, szConnectedUserName, sTrollface, msg.szIpAddress);
 
+        // server injects this msg to self so resources for player will be allocated
+        getNetwork().getServer().getPacketQueue().push_back(newPktSetup);
+
         // inform all other clients about this new user
         getNetwork().getServer().SendPacketToAllClients(newPktSetup, connHandleServerSide);
 
@@ -694,51 +705,6 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             getNetwork().getServer().SendPacketToClient(connHandleServerSide, newPktUserUpdate);
         }
     }
-
-    // insert user into map using wacky syntax
-    m_mapPlayers[szConnectedUserName];
-    m_mapPlayers[szConnectedUserName].m_sTrollface = sTrollface;
-    m_mapPlayers[szConnectedUserName].m_connHandleServerSide = connHandleServerSide;
-    m_mapPlayers[szConnectedUserName].m_sIpAddress = msg.szIpAddress;
-
-    PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(0.5f, 0.5f);
-    if (!plane)
-    {
-        getConsole().EOLn("CustomPGE::%s(): failed to create object for user %s!", __func__, szConnectedUserName);
-        // TODO: should exit or sg
-        return;
-    }
-
-    plane->SetDoubleSided(true);
-    plane->getPosVec().SetX(0);
-    plane->getPosVec().SetZ(2);
-
-    if (!sTrollface.empty())
-    {
-        PRRETexture* const tex = getPRRE().getTextureManager().createFromFile(sTrollface.c_str());
-        if (tex)
-        {
-            plane->getMaterial().setTexture(tex);
-        }
-        else
-        {
-            getConsole().EOLn("CustomPGE::%s(): failed to load trollface texture %s for user %s!",
-                __func__, sTrollface.c_str(), szConnectedUserName);
-        }
-    }
-    else
-    {
-        getConsole().EOLn("CustomPGE::%s(): trollface texture name empty for user %s!",
-            __func__, szConnectedUserName);
-    }
-    
-    plane->setVertexModifyingHabit(PRRE_VMOD_STATIC);
-    plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
-
-    m_mapPlayers[szConnectedUserName].m_pObject3D = plane;
-
-    getNetwork().WriteList();
-    WritePlayerList();
 }
 
 void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserDisconnected&)
