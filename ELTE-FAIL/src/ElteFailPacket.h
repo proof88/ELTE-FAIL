@@ -9,6 +9,8 @@
     ###################################################################################
 */
 
+#include <cassert>
+
 #include "../../../PGE/PGE/Network/PgePacket.h"
 
 namespace ElteFailMsg
@@ -50,6 +52,7 @@ namespace ElteFailMsg
             const std::string& sTrollFaceTex,
             const std::string& sIpAddress)
         {
+            assert(sizeof(MsgUserSetup) <= pge_network::PgeMsgApp::nMessageMaxLength);
             memset(&pkt, 0, sizeof(pkt));
             pkt.m_connHandleServerSide = connHandleServerSide;
             pkt.pktId = pge_network::PgePktId::APP;
@@ -81,6 +84,7 @@ namespace ElteFailMsg
             const HorizontalDirection& dirHorizontal,
             const VerticalDirection& dirVertical)
         {
+            assert(sizeof(MsgUserCmdMove) <= pge_network::PgeMsgApp::nMessageMaxLength);
             memset(&pkt, 0, sizeof(pkt));
             // m_connHandleServerSide is ignored in this message
             //pkt.m_connHandleServerSide = connHandleServerSide;
@@ -111,6 +115,7 @@ namespace ElteFailMsg
             const TPRREfloat y, 
             const TPRREfloat z)
         {
+            assert(sizeof(MsgUserUpdate) <= pge_network::PgeMsgApp::nMessageMaxLength);
             memset(&pkt, 0, sizeof(pkt));
             pkt.m_connHandleServerSide = connHandleServerSide;
             pkt.pktId = pge_network::PgePktId::APP;
