@@ -855,4 +855,3 @@ void CustomPGE::HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHan
     obj->getPosVec().SetY(msg.m_pos.y);
 }
 
-
