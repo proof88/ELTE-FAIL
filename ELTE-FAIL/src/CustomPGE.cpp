@@ -521,8 +521,8 @@ void CustomPGE::WritePlayerList()
     getConsole().OLnOI("CustomPGE::%s()", __func__);
     for (const auto& player : m_mapPlayers)
     {
-        getConsole().OLn("Username: %s; connHandleServerSide: %u; trollFace: %s",
-            player.first.c_str(), player.second.m_connHandleServerSide, player.second.m_sTrollface.c_str());
+        getConsole().OLn("Username: %s; connHandleServerSide: %u; address: %s; trollFace: %s",
+            player.first.c_str(), player.second.m_connHandleServerSide, player.second.m_sIpAddress.c_str(), player.second.m_sTrollface.c_str());
     }
     getConsole().OLnOO("");
 }
@@ -546,20 +546,23 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle m_connHa
 
     if (msg.bCurrentClient)
     {
-        getConsole().OLn("CustomPGE::%s(): this is me, my name is %s, m_connHandleServerSide: %u", __func__, msg.szUserName, m_connHandleServerSide);
+        getConsole().OLn("CustomPGE::%s(): this is me, my name is %s, m_connHandleServerSide: %u, my IP: %s",
+            __func__, msg.szUserName, m_connHandleServerSide, msg.szIpAddress);
         // store our username so we can refer to it anytime later
         sUserName = msg.szUserName;
-        getPRRE().getUImanager().addText("Client, User name: " + sUserName, 10, 30);
+        getPRRE().getUImanager().addText("Client, User name: " + sUserName + "; IP: " + msg.szIpAddress, 10, 30);
     }
     else
     {
-        getConsole().OLn("CustomPGE::%s(): new remote user %s (m_connHandleServerSide: %u) connected and I'm client", __func__, msg.szUserName, m_connHandleServerSide);
+        getConsole().OLn("CustomPGE::%s(): new remote user %s (m_connHandleServerSide: %u; IP: %s) connected and I'm client",
+            __func__, msg.szUserName, m_connHandleServerSide, msg.szIpAddress);
     }
 
     // insert user into map using wacky syntax
     m_mapPlayers[msg.szUserName];
     m_mapPlayers[msg.szUserName].m_sTrollface = msg.szTrollfaceTex;
     m_mapPlayers[msg.szUserName].m_connHandleServerSide = m_connHandleServerSide;
+    m_mapPlayers[msg.szUserName].m_sIpAddress = msg.szIpAddress;
 
     PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(0.5f, 0.5f);
     if (!plane)
@@ -662,8 +665,8 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_co
         char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameMaxLength];
         genUniqueUserName(szNewUserName);
         szConnectedUserName = szNewUserName;
-        getConsole().OLn("CustomPGE::%s(): new remote user %s (m_connHandleServerSide: %u) connected and I'm server",
-            __func__, szConnectedUserName, m_connHandleServerSide);
+        getConsole().OLn("CustomPGE::%s(): new remote user %s (m_connHandleServerSide: %u) connected (from %s) and I'm server",
+            __func__, szConnectedUserName, m_connHandleServerSide, msg.szIpAddress);
 
         pge_network::PgePacket newPktSetup;
         memset(&newPktSetup, 0, sizeof(newPktSetup));
@@ -675,6 +678,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_co
         msgUserSetup.bCurrentClient = false;
         strncpy_s(msgUserSetup.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, szConnectedUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength);
         strncpy_s(msgUserSetup.szTrollfaceTex, ElteFailMsg::MsgUserSetup::nTrollfaceTexMaxLength, sTrollface.c_str(), sTrollface.length());
+        strncpy_s(msgUserSetup.szIpAddress, sizeof(msgUserSetup.szIpAddress), msg.szIpAddress, sizeof(msg.szIpAddress));
 
         // inform all other clients about this new user
         getNetwork().getServer().SendPacketToAllClients(newPktSetup, m_connHandleServerSide);
@@ -698,6 +702,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_co
             newPktSetup.m_connHandleServerSide = it.second.m_connHandleServerSide;
             strncpy_s(msgUserSetup.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, it.first.c_str(), it.first.length());
             strncpy_s(msgUserSetup.szTrollfaceTex, ElteFailMsg::MsgUserSetup::nTrollfaceTexMaxLength, it.second.m_sTrollface.c_str(), it.second.m_sTrollface.length());
+            strncpy_s(msgUserSetup.szIpAddress, sizeof(msgUserSetup.szIpAddress), it.second.m_sIpAddress.c_str(), it.second.m_sIpAddress.length());
             getNetwork().getServer().SendPacketToClient(m_connHandleServerSide, newPktSetup);
             
             newPktUserUpdate.m_connHandleServerSide = it.second.m_connHandleServerSide;
@@ -712,6 +717,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_co
     m_mapPlayers[szConnectedUserName];
     m_mapPlayers[szConnectedUserName].m_sTrollface = sTrollface;
     m_mapPlayers[szConnectedUserName].m_connHandleServerSide = m_connHandleServerSide;
+    m_mapPlayers[szConnectedUserName].m_sIpAddress = msg.szIpAddress;
 
     PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(0.5f, 0.5f);
     if (!plane)

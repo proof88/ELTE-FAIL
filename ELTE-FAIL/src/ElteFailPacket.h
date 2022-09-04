@@ -45,6 +45,7 @@ namespace ElteFailMsg
         bool bCurrentClient;
         char szUserName[nUserNameMaxLength];
         char szTrollfaceTex[nTrollfaceTexMaxLength];
+        char szIpAddress[pge_network::PgeMsgUserConnected::nIpAddressMaxLength];
     };
 
     // clients -> server

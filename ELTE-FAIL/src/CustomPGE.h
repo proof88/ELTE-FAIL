@@ -26,6 +26,7 @@ struct Player_t
                                                                            to each other! */
     std::string m_sTrollface;
     PRREObject3D* pObject3D;
+    std::string m_sIpAddress;
 };
 
 
