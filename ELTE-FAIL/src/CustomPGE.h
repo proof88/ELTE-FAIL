@@ -25,7 +25,7 @@ struct Player_t
                                                                            towards the server! Those connection handles are not related
                                                                            to each other! */
     std::string m_sTrollface;
-    PRREObject3D* pObject3D;
+    PRREObject3D* m_pObject3D;
     std::string m_sIpAddress;
 };
 
@@ -81,9 +81,9 @@ private:
 
     void genUniqueUserName(char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameMaxLength]) const;
     void WritePlayerList();
-    void HandleUserSetup(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const ElteFailMsg::MsgUserSetup& msg);
-    void HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const pge_network::MsgUserConnected& msg);
-    void HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const pge_network::MsgUserDisconnected& msg);
-    void HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const ElteFailMsg::MsgUserCmdMove& msg);
-    void HandleUserUpdate(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const ElteFailMsg::MsgUserUpdate& msg);
+    void HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const ElteFailMsg::MsgUserSetup& msg);
+    void HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserConnected& msg);
+    void HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserDisconnected& msg);
+    void HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const ElteFailMsg::MsgUserCmdMove& msg);
+    void HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const ElteFailMsg::MsgUserUpdate& msg);
 }; // class CustomPGE
