@@ -392,12 +392,7 @@ void CustomPGE::onGameRunning()
     if ((horDir != ElteFailMsg::HorizontalDirection::NONE) || (verDir != ElteFailMsg::VerticalDirection::NONE))
     {
         pge_network::PgePacket pkt;
-        memset(&pkt, 0, sizeof(pkt));
-        pkt.pktId = pge_network::PgePktId::APP;
-        pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id);
-        ElteFailMsg::MsgUserCmdMove& msgCmdMove = reinterpret_cast<ElteFailMsg::MsgUserCmdMove&>(pkt.msg.app.cData);
-        msgCmdMove.m_horDirection = horDir;
-        msgCmdMove.m_verDirection = verDir;
+        ElteFailMsg::MsgUserCmdMove::initPkt(pkt, horDir, verDir);
 
         if (getNetwork().isServer())
         {
@@ -822,15 +817,15 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle m_conn
         return;
     }
 
-    if ((pktUserCmdMove.m_horDirection == ElteFailMsg::HorizontalDirection::NONE) &&
-        (pktUserCmdMove.m_verDirection == ElteFailMsg::VerticalDirection::NONE))
+    if ((pktUserCmdMove.m_dirHorizontal == ElteFailMsg::HorizontalDirection::NONE) &&
+        (pktUserCmdMove.m_dirVertical == ElteFailMsg::VerticalDirection::NONE))
     {
         getConsole().EOLn("CustomPGE::%s(): user %s sent invalid cmdMove!", __func__, sClientUserName.c_str());
         return;
     }
 
     //getConsole().OLn("CustomPGE::%s(): user %s sent valid cmdMove", __func__, sClientUserName.c_str());
-    switch (pktUserCmdMove.m_horDirection)
+    switch (pktUserCmdMove.m_dirHorizontal)
     {
     case ElteFailMsg::HorizontalDirection::LEFT:
         obj->getPosVec().SetX( obj->getPosVec().getX() - 0.01f );
@@ -842,7 +837,7 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle m_conn
         break;
     }
 
-    switch (pktUserCmdMove.m_verDirection)
+    switch (pktUserCmdMove.m_dirVertical)
     {
     case ElteFailMsg::VerticalDirection::DOWN:
         obj->getPosVec().SetY(obj->getPosVec().getY() - 0.01f);

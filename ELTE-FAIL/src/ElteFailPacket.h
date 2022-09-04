@@ -44,14 +44,14 @@ namespace ElteFailMsg
 
         static bool initPkt(
             pge_network::PgePacket& pkt,
-            const pge_network::PgeNetworkConnectionHandle& connHandle,
+            const pge_network::PgeNetworkConnectionHandle& connHandleServerSide,
             bool bCurrentClient,
             const std::string& sUserName,
             const std::string& sTrollFaceTex,
             const std::string& sIpAddress)
         {
             memset(&pkt, 0, sizeof(pkt));
-            pkt.m_connHandleServerSide = connHandle;
+            pkt.m_connHandleServerSide = connHandleServerSide;
             pkt.pktId = pge_network::PgePktId::APP;
             pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserSetup::id);
 
@@ -76,8 +76,26 @@ namespace ElteFailMsg
     {
         static const ElteFailMsgId id = ElteFailMsgId::USER_CMD_MOVE;
 
-        HorizontalDirection m_horDirection;
-        VerticalDirection m_verDirection;
+        static bool initPkt(
+            pge_network::PgePacket& pkt,
+            const HorizontalDirection& dirHorizontal,
+            const VerticalDirection& dirVertical)
+        {
+            memset(&pkt, 0, sizeof(pkt));
+            // m_connHandleServerSide is ignored in this message
+            //pkt.m_connHandleServerSide = connHandleServerSide;
+            pkt.pktId = pge_network::PgePktId::APP;
+            pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id);
+
+            ElteFailMsg::MsgUserCmdMove& msgUserCmdMove = reinterpret_cast<ElteFailMsg::MsgUserCmdMove&>(pkt.msg.app.cData);
+            msgUserCmdMove.m_dirHorizontal = dirHorizontal;
+            msgUserCmdMove.m_dirVertical = dirVertical;
+
+            return true;
+        }
+
+        HorizontalDirection m_dirHorizontal;
+        VerticalDirection m_dirVertical;
     };
 
     // server -> self and clients
