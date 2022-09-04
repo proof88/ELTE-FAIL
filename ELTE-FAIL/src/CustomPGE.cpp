@@ -675,23 +675,23 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_co
         getNetwork().getServer().SendPacketToClient(m_connHandleServerSide, newPktSetup);
 
         // we also send as many MsgUserSetup pkts to the client as the number of already connected players,
-        // otherwise client won't know about them, so the client will detect them as newly connected users;
-        // we also send MsgUserUpdate about each player so new client will immediately have their positions
-
+        // otherwise client won't know about them, so this way the client will detect them as newly connected users;
+        // we also send MsgUserUpdate about each player so new client will immediately have their positions updated.
         pge_network::PgePacket newPktUserUpdate;
-        memset(&newPktUserUpdate, 0, sizeof(newPktUserUpdate));
-        newPktUserUpdate.pktId = pge_network::PgePktId::APP;
-        newPktUserUpdate.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id);
-        ElteFailMsg::MsgUserUpdate& msgUserUpdate = reinterpret_cast<ElteFailMsg::MsgUserUpdate&>(newPktUserUpdate.msg.app.cData);
         for (const auto& it : m_mapPlayers)
         {
-            ElteFailMsg::MsgUserSetup::initPkt(newPktSetup, it.second.m_connHandleServerSide, false, it.first, it.second.m_sTrollface, it.second.m_sIpAddress);
+            ElteFailMsg::MsgUserSetup::initPkt(
+                newPktSetup,
+                it.second.m_connHandleServerSide,
+                false,
+                it.first, it.second.m_sTrollface, it.second.m_sIpAddress);
             getNetwork().getServer().SendPacketToClient(m_connHandleServerSide, newPktSetup);
             
-            newPktUserUpdate.m_connHandleServerSide = it.second.m_connHandleServerSide;
-            strncpy_s(msgUserUpdate.m_szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, it.first.c_str(), it.first.length());
-            msgUserUpdate.m_pos.x = it.second.pObject3D->getPosVec().getX();
-            msgUserUpdate.m_pos.y = it.second.pObject3D->getPosVec().getY();
+            ElteFailMsg::MsgUserUpdate::initPkt(
+                newPktUserUpdate,
+                it.second.m_connHandleServerSide,
+                it.first,
+                it.second.pObject3D->getPosVec().getX(), it.second.pObject3D->getPosVec().getY(), it.second.pObject3D->getPosVec().getZ());
             getNetwork().getServer().SendPacketToClient(m_connHandleServerSide, newPktUserUpdate);
         }
     }
@@ -850,13 +850,7 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle m_conn
     }
 
     pge_network::PgePacket pktOut;
-    memset(&pktOut, 0, sizeof(pktOut));
-    pktOut.pktId = pge_network::PgePktId::APP;
-    pktOut.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id);
-    ElteFailMsg::MsgUserUpdate& msgUserUpdate = reinterpret_cast<ElteFailMsg::MsgUserUpdate&>(pktOut.msg.app.cData);
-    strncpy_s(msgUserUpdate.m_szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, sClientUserName.c_str(), sClientUserName.length());
-    msgUserUpdate.m_pos.x = obj->getPosVec().getX();
-    msgUserUpdate.m_pos.y = obj->getPosVec().getY();
+    ElteFailMsg::MsgUserUpdate::initPkt(pktOut, m_connHandleServerSide, sClientUserName, obj->getPosVec().getX(), obj->getPosVec().getY(), obj->getPosVec().getZ());
     getNetwork().getServer().SendPacketToAllClients(pktOut);
     // this msgUserUpdate should be also sent to server as self
     // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for server's packet queue!
