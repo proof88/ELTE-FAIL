@@ -42,10 +42,32 @@ namespace ElteFailMsg
         static const uint8_t nUserNameMaxLength = 64;
         static const uint8_t nTrollfaceTexMaxLength = 64;
 
-        bool bCurrentClient;
-        char szUserName[nUserNameMaxLength];
-        char szTrollfaceTex[nTrollfaceTexMaxLength];
-        char szIpAddress[pge_network::PgeMsgUserConnected::nIpAddressMaxLength];
+        static bool initPkt(
+            pge_network::PgePacket& pkt,
+            const pge_network::PgeNetworkConnectionHandle& connHandle,
+            bool bCurrentClient,
+            const std::string& sUserName,
+            const std::string& sTrollFaceTex,
+            const std::string& sIpAddress)
+        {
+            memset(&pkt, 0, sizeof(pkt));
+            pkt.m_connHandleServerSide = connHandle;
+            pkt.pktId = pge_network::PgePktId::APP;
+            pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserSetup::id);
+
+            ElteFailMsg::MsgUserSetup& msgUserSetup = reinterpret_cast<ElteFailMsg::MsgUserSetup&>(pkt.msg.app.cData);
+            msgUserSetup.m_bCurrentClient = bCurrentClient;
+            strncpy_s(msgUserSetup.m_szUserName, nUserNameMaxLength, sUserName.c_str(), sUserName.length());
+            strncpy_s(msgUserSetup.m_szTrollfaceTex, nTrollfaceTexMaxLength, sTrollFaceTex.c_str(), sTrollFaceTex.length());
+            strncpy_s(msgUserSetup.m_szIpAddress, sizeof(msgUserSetup.m_szIpAddress), sIpAddress.c_str(), sIpAddress.length());
+
+            return true;
+        }
+
+        bool m_bCurrentClient;
+        char m_szUserName[nUserNameMaxLength];
+        char m_szTrollfaceTex[nTrollfaceTexMaxLength];
+        char m_szIpAddress[pge_network::PgeMsgUserConnected::nIpAddressMaxLength];
     };
 
     // clients -> server
@@ -54,8 +76,8 @@ namespace ElteFailMsg
     {
         static const ElteFailMsgId id = ElteFailMsgId::USER_CMD_MOVE;
 
-        HorizontalDirection horDirection;
-        VerticalDirection verDirection;
+        HorizontalDirection m_horDirection;
+        VerticalDirection m_verDirection;
     };
 
     // server -> self and clients
@@ -63,8 +85,8 @@ namespace ElteFailMsg
     {
         static const ElteFailMsgId id = ElteFailMsgId::USER_UPDATE;
 
-        char szUserName[MsgUserSetup::nUserNameMaxLength];
-        TXYZ pos;
+        char m_szUserName[MsgUserSetup::nUserNameMaxLength];
+        TXYZ m_pos;
     };
 
 } // namespace ElteFailMsg

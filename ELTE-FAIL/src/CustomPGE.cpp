@@ -396,8 +396,8 @@ void CustomPGE::onGameRunning()
         pkt.pktId = pge_network::PgePktId::APP;
         pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id);
         ElteFailMsg::MsgUserCmdMove& msgCmdMove = reinterpret_cast<ElteFailMsg::MsgUserCmdMove&>(pkt.msg.app.cData);
-        msgCmdMove.horDirection = horDir;
-        msgCmdMove.verDirection = verDir;
+        msgCmdMove.m_horDirection = horDir;
+        msgCmdMove.m_verDirection = verDir;
 
         if (getNetwork().isServer())
         {
@@ -536,38 +536,38 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle m_connHa
         return;
     }
 
-    if ((strnlen(msg.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(msg.szUserName)))
+    if ((strnlen(msg.m_szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(msg.m_szUserName)))
     {
         getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s (m_connHandleServerSide: %u) is already present in players list!",
-            __func__, msg.szUserName, m_connHandleServerSide);
+            __func__, msg.m_szUserName, m_connHandleServerSide);
         assert(false);
         return;
     }
 
-    if (msg.bCurrentClient)
+    if (msg.m_bCurrentClient)
     {
         getConsole().OLn("CustomPGE::%s(): this is me, my name is %s, m_connHandleServerSide: %u, my IP: %s",
-            __func__, msg.szUserName, m_connHandleServerSide, msg.szIpAddress);
+            __func__, msg.m_szUserName, m_connHandleServerSide, msg.m_szIpAddress);
         // store our username so we can refer to it anytime later
-        sUserName = msg.szUserName;
-        getPRRE().getUImanager().addText("Client, User name: " + sUserName + "; IP: " + msg.szIpAddress, 10, 30);
+        sUserName = msg.m_szUserName;
+        getPRRE().getUImanager().addText("Client, User name: " + sUserName + "; IP: " + msg.m_szIpAddress, 10, 30);
     }
     else
     {
         getConsole().OLn("CustomPGE::%s(): new remote user %s (m_connHandleServerSide: %u; IP: %s) connected and I'm client",
-            __func__, msg.szUserName, m_connHandleServerSide, msg.szIpAddress);
+            __func__, msg.m_szUserName, m_connHandleServerSide, msg.m_szIpAddress);
     }
 
     // insert user into map using wacky syntax
-    m_mapPlayers[msg.szUserName];
-    m_mapPlayers[msg.szUserName].m_sTrollface = msg.szTrollfaceTex;
-    m_mapPlayers[msg.szUserName].m_connHandleServerSide = m_connHandleServerSide;
-    m_mapPlayers[msg.szUserName].m_sIpAddress = msg.szIpAddress;
+    m_mapPlayers[msg.m_szUserName];
+    m_mapPlayers[msg.m_szUserName].m_sTrollface = msg.m_szTrollfaceTex;
+    m_mapPlayers[msg.m_szUserName].m_connHandleServerSide = m_connHandleServerSide;
+    m_mapPlayers[msg.m_szUserName].m_sIpAddress = msg.m_szIpAddress;
 
     PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(0.5f, 0.5f);
     if (!plane)
     {
-        getConsole().EOLn("CustomPGE::%s(): failed to create object for user %s!", __func__, msg.szUserName);
+        getConsole().EOLn("CustomPGE::%s(): failed to create object for user %s!", __func__, msg.m_szUserName);
         // TODO: should exit or sg
         return;
     }
@@ -576,9 +576,9 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle m_connHa
     plane->getPosVec().SetX(0);
     plane->getPosVec().SetZ(2);
 
-    if (!m_mapPlayers[msg.szUserName].m_sTrollface.empty())
+    if (!m_mapPlayers[msg.m_szUserName].m_sTrollface.empty())
     {
-        PRRETexture* const tex = getPRRE().getTextureManager().createFromFile(m_mapPlayers[msg.szUserName].m_sTrollface.c_str());
+        PRRETexture* const tex = getPRRE().getTextureManager().createFromFile(m_mapPlayers[msg.m_szUserName].m_sTrollface.c_str());
         if (tex)
         {
             plane->getMaterial().setTexture(tex);
@@ -586,19 +586,19 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle m_connHa
         else
         {
             getConsole().EOLn("CustomPGE::%s(): failed to load trollface texture %s for user %s!",
-                __func__, m_mapPlayers[msg.szUserName].m_sTrollface.c_str(), msg.szUserName);
+                __func__, m_mapPlayers[msg.m_szUserName].m_sTrollface.c_str(), msg.m_szUserName);
         }
     }
     else
     {
         getConsole().EOLn("CustomPGE::%s(): trollface texture name empty for user %s!",
-            __func__, msg.szUserName);
+            __func__, msg.m_szUserName);
     }
 
     plane->setVertexModifyingHabit(PRRE_VMOD_STATIC);
     plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
 
-    m_mapPlayers[msg.szUserName].pObject3D = plane;
+    m_mapPlayers[msg.m_szUserName].pObject3D = plane;
 
     getNetwork().WriteList();
     WritePlayerList();
@@ -669,28 +669,19 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_co
             __func__, szConnectedUserName, m_connHandleServerSide, msg.szIpAddress);
 
         pge_network::PgePacket newPktSetup;
-        memset(&newPktSetup, 0, sizeof(newPktSetup));
-        newPktSetup.m_connHandleServerSide = m_connHandleServerSide;
-        newPktSetup.pktId = pge_network::PgePktId::APP;
-        newPktSetup.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserSetup::id);
-
-        ElteFailMsg::MsgUserSetup& msgUserSetup = reinterpret_cast<ElteFailMsg::MsgUserSetup&>(newPktSetup.msg.app.cData);
-        msgUserSetup.bCurrentClient = false;
-        strncpy_s(msgUserSetup.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, szConnectedUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength);
-        strncpy_s(msgUserSetup.szTrollfaceTex, ElteFailMsg::MsgUserSetup::nTrollfaceTexMaxLength, sTrollface.c_str(), sTrollface.length());
-        strncpy_s(msgUserSetup.szIpAddress, sizeof(msgUserSetup.szIpAddress), msg.szIpAddress, sizeof(msg.szIpAddress));
+        ElteFailMsg::MsgUserSetup::initPkt(newPktSetup, m_connHandleServerSide, false, szConnectedUserName, sTrollface, msg.szIpAddress);
 
         // inform all other clients about this new user
         getNetwork().getServer().SendPacketToAllClients(newPktSetup, m_connHandleServerSide);
 
         // now we send this msg to the client with this bool flag set so client will know it is their connect
-        msgUserSetup.bCurrentClient = true;
+        ElteFailMsg::MsgUserSetup& msgUserSetup = reinterpret_cast<ElteFailMsg::MsgUserSetup&>(newPktSetup.msg.app.cData);
+        msgUserSetup.m_bCurrentClient = true;
         getNetwork().getServer().SendPacketToClient(m_connHandleServerSide, newPktSetup);
 
         // we also send as many MsgUserSetup pkts to the client as the number of already connected players,
         // otherwise client won't know about them, so the client will detect them as newly connected users;
         // we also send MsgUserUpdate about each player so new client will immediately have their positions
-        msgUserSetup.bCurrentClient = false;
 
         pge_network::PgePacket newPktUserUpdate;
         memset(&newPktUserUpdate, 0, sizeof(newPktUserUpdate));
@@ -699,16 +690,13 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_co
         ElteFailMsg::MsgUserUpdate& msgUserUpdate = reinterpret_cast<ElteFailMsg::MsgUserUpdate&>(newPktUserUpdate.msg.app.cData);
         for (const auto& it : m_mapPlayers)
         {
-            newPktSetup.m_connHandleServerSide = it.second.m_connHandleServerSide;
-            strncpy_s(msgUserSetup.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, it.first.c_str(), it.first.length());
-            strncpy_s(msgUserSetup.szTrollfaceTex, ElteFailMsg::MsgUserSetup::nTrollfaceTexMaxLength, it.second.m_sTrollface.c_str(), it.second.m_sTrollface.length());
-            strncpy_s(msgUserSetup.szIpAddress, sizeof(msgUserSetup.szIpAddress), it.second.m_sIpAddress.c_str(), it.second.m_sIpAddress.length());
+            ElteFailMsg::MsgUserSetup::initPkt(newPktSetup, it.second.m_connHandleServerSide, false, it.first, it.second.m_sTrollface, it.second.m_sIpAddress);
             getNetwork().getServer().SendPacketToClient(m_connHandleServerSide, newPktSetup);
             
             newPktUserUpdate.m_connHandleServerSide = it.second.m_connHandleServerSide;
-            strncpy_s(msgUserUpdate.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, it.first.c_str(), it.first.length());
-            msgUserUpdate.pos.x = it.second.pObject3D->getPosVec().getX();
-            msgUserUpdate.pos.y = it.second.pObject3D->getPosVec().getY();
+            strncpy_s(msgUserUpdate.m_szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, it.first.c_str(), it.first.length());
+            msgUserUpdate.m_pos.x = it.second.pObject3D->getPosVec().getX();
+            msgUserUpdate.m_pos.y = it.second.pObject3D->getPosVec().getY();
             getNetwork().getServer().SendPacketToClient(m_connHandleServerSide, newPktUserUpdate);
         }
     }
@@ -834,15 +822,15 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle m_conn
         return;
     }
 
-    if ((pktUserCmdMove.horDirection == ElteFailMsg::HorizontalDirection::NONE) && 
-        (pktUserCmdMove.verDirection == ElteFailMsg::VerticalDirection::NONE))
+    if ((pktUserCmdMove.m_horDirection == ElteFailMsg::HorizontalDirection::NONE) &&
+        (pktUserCmdMove.m_verDirection == ElteFailMsg::VerticalDirection::NONE))
     {
         getConsole().EOLn("CustomPGE::%s(): user %s sent invalid cmdMove!", __func__, sClientUserName.c_str());
         return;
     }
 
     //getConsole().OLn("CustomPGE::%s(): user %s sent valid cmdMove", __func__, sClientUserName.c_str());
-    switch (pktUserCmdMove.horDirection)
+    switch (pktUserCmdMove.m_horDirection)
     {
     case ElteFailMsg::HorizontalDirection::LEFT:
         obj->getPosVec().SetX( obj->getPosVec().getX() - 0.01f );
@@ -854,7 +842,7 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle m_conn
         break;
     }
 
-    switch (pktUserCmdMove.verDirection)
+    switch (pktUserCmdMove.m_verDirection)
     {
     case ElteFailMsg::VerticalDirection::DOWN:
         obj->getPosVec().SetY(obj->getPosVec().getY() - 0.01f);
@@ -871,9 +859,9 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle m_conn
     pktOut.pktId = pge_network::PgePktId::APP;
     pktOut.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id);
     ElteFailMsg::MsgUserUpdate& msgUserUpdate = reinterpret_cast<ElteFailMsg::MsgUserUpdate&>(pktOut.msg.app.cData);
-    strncpy_s(msgUserUpdate.szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, sClientUserName.c_str(), sClientUserName.length());
-    msgUserUpdate.pos.x = obj->getPosVec().getX();
-    msgUserUpdate.pos.y = obj->getPosVec().getY();
+    strncpy_s(msgUserUpdate.m_szUserName, ElteFailMsg::MsgUserSetup::nUserNameMaxLength, sClientUserName.c_str(), sClientUserName.length());
+    msgUserUpdate.m_pos.x = obj->getPosVec().getX();
+    msgUserUpdate.m_pos.y = obj->getPosVec().getY();
     getNetwork().getServer().SendPacketToAllClients(pktOut);
     // this msgUserUpdate should be also sent to server as self
     // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for server's packet queue!
@@ -882,22 +870,22 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle m_conn
 
 void CustomPGE::HandleUserUpdate(pge_network::PgeNetworkConnectionHandle, const ElteFailMsg::MsgUserUpdate& msg)
 {
-    auto it = m_mapPlayers.find(msg.szUserName);
+    auto it = m_mapPlayers.find(msg.m_szUserName);
     if (m_mapPlayers.end() == it)
     {
-        getConsole().EOLn("CustomPGE::%s(): failed to find user: %s!", __func__, msg.szUserName);
+        getConsole().EOLn("CustomPGE::%s(): failed to find user: %s!", __func__, msg.m_szUserName);
         return;
     }
 
     PRREObject3D* obj = it->second.pObject3D;
     if (!obj)
     {
-        getConsole().EOLn("CustomPGE::%s(): user %s doesn't have associated Object3D!", __func__, msg.szUserName);
+        getConsole().EOLn("CustomPGE::%s(): user %s doesn't have associated Object3D!", __func__, msg.m_szUserName);
         return;
     }
 
-    obj->getPosVec().SetX(msg.pos.x);
-    obj->getPosVec().SetY(msg.pos.y);
+    obj->getPosVec().SetX(msg.m_pos.x);
+    obj->getPosVec().SetY(msg.m_pos.y);
 }
 
 
