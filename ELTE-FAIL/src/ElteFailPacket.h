@@ -110,7 +110,6 @@ namespace ElteFailMsg
         static bool initPkt(
             pge_network::PgePacket& pkt,
             const pge_network::PgeNetworkConnectionHandle& connHandleServerSide,
-            const std::string& sUserName,
             const TPRREfloat x,
             const TPRREfloat y, 
             const TPRREfloat z)
@@ -122,7 +121,6 @@ namespace ElteFailMsg
             pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id);
 
             ElteFailMsg::MsgUserUpdate& msgUserCmdUpdate = reinterpret_cast<ElteFailMsg::MsgUserUpdate&>(pkt.msg.app.cData);
-            strncpy_s(msgUserCmdUpdate.m_szUserName, MsgUserSetup::nUserNameMaxLength, sUserName.c_str(), sUserName.length());
             msgUserCmdUpdate.m_pos.x = x;
             msgUserCmdUpdate.m_pos.y = y;
             msgUserCmdUpdate.m_pos.z = z;
@@ -130,7 +128,6 @@ namespace ElteFailMsg
             return true;
         }
 
-        char m_szUserName[MsgUserSetup::nUserNameMaxLength];
         TXYZ m_pos;
     };
 

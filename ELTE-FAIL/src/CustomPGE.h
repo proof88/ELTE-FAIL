@@ -74,7 +74,9 @@ private:
     PRREObject3D* box1;
     PRREObject3D* box2;
     std::string sUserName;   /**< User name received from server in PgePktUserConnected (server instance also receives this from itself). */
-    std::map<std::string, Player_t> m_mapPlayers;  /**< Connected players. Used by both server and clients. */
+    std::map<std::string, Player_t> m_mapPlayers;  /**< Connected players. Used by both server and clients. Key is user name. */
+    // TODO: originally username was planned to be the key for above map, however if we see that we can always use connHandleServerSide to
+    // find proper player, then let's change the key to that instead of user name!
     std::set<std::string> trollFaces;              /**< Trollface texture file names. Used by server only. */
 
     // ---------------------------------------------------------------------------
