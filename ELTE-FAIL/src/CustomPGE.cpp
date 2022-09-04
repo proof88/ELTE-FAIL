@@ -524,7 +524,7 @@ void CustomPGE::WritePlayerList()
         getConsole().OLn("Username: %s; connHandleServerSide: %u; address: %s; trollFace: %s",
             player.first.c_str(), player.second.m_connHandleServerSide, player.second.m_sIpAddress.c_str(), player.second.m_sTrollface.c_str());
     }
-    getConsole().OLnOO("");
+    getConsole().OO();
 }
 
 void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const ElteFailMsg::MsgUserSetup& msg)
