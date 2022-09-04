@@ -445,13 +445,13 @@ void CustomPGE::onPacketReceived(pge_network::PgeNetworkConnectionHandle m_connH
 {
     switch (pkt.pktId)
     {
-    case pge_network::PgeMsgUserConnected::id:
+    case pge_network::MsgUserConnected::id:
         HandleUserConnected(m_connHandleServerSide, pkt.msg.userConnected);
         break;
-    case pge_network::PgeMsgUserDisconnected::id:
+    case pge_network::MsgUserDisconnected::id:
         HandleUserDisconnected(m_connHandleServerSide, pkt.msg.userDisconnected);
         break;
-    case pge_network::PgeMsgApp::id:
+    case pge_network::MsgApp::id:
     {
         switch (static_cast<ElteFailMsg::ElteFailMsgId>(pkt.msg.app.msgId))
         {
@@ -465,7 +465,7 @@ void CustomPGE::onPacketReceived(pge_network::PgeNetworkConnectionHandle m_connH
             HandleUserUpdate(m_connHandleServerSide, reinterpret_cast<const ElteFailMsg::MsgUserUpdate&>(pkt.msg.app.cData));
             break;
         default:
-            getConsole().EOLn("CustomPGE::%s(): unknown msgId %u in PgeMsgApp!", __func__, pkt.pktId);
+            getConsole().EOLn("CustomPGE::%s(): unknown msgId %u in MsgApp!", __func__, pkt.pktId);
         }
         break;
     }
@@ -599,7 +599,7 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle m_connHa
     WritePlayerList();
 }
 
-void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const pge_network::PgeMsgUserConnected& msg)
+void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const pge_network::MsgUserConnected& msg)
 {
     if (!getNetwork().isServer())
     {
@@ -742,7 +742,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle m_co
     WritePlayerList();
 }
 
-void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const pge_network::PgeMsgUserDisconnected&)
+void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const pge_network::MsgUserDisconnected&)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())

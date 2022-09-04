@@ -16,7 +16,7 @@
 namespace ElteFailMsg
 {
 
-    enum class ElteFailMsgId : pge_network::TPgeMsgAppMsgId  /* underlying type should be same as type of PgeMsgApp::msgId */
+    enum class ElteFailMsgId : pge_network::TPgeMsgAppMsgId  /* underlying type should be same as type of MsgApp::msgId */
     {
         USER_SETUP = 0,
         USER_CMD_MOVE,
@@ -52,7 +52,7 @@ namespace ElteFailMsg
             const std::string& sTrollFaceTex,
             const std::string& sIpAddress)
         {
-            assert(sizeof(MsgUserSetup) <= pge_network::PgeMsgApp::nMessageMaxLength);
+            assert(sizeof(MsgUserSetup) <= pge_network::MsgApp::nMessageMaxLength);
             memset(&pkt, 0, sizeof(pkt));
             pkt.m_connHandleServerSide = connHandleServerSide;
             pkt.pktId = pge_network::PgePktId::APP;
@@ -70,7 +70,7 @@ namespace ElteFailMsg
         bool m_bCurrentClient;
         char m_szUserName[nUserNameMaxLength];
         char m_szTrollfaceTex[nTrollfaceTexMaxLength];
-        char m_szIpAddress[pge_network::PgeMsgUserConnected::nIpAddressMaxLength];
+        char m_szIpAddress[pge_network::MsgUserConnected::nIpAddressMaxLength];
     };
 
     // clients -> server
@@ -84,7 +84,7 @@ namespace ElteFailMsg
             const HorizontalDirection& dirHorizontal,
             const VerticalDirection& dirVertical)
         {
-            assert(sizeof(MsgUserCmdMove) <= pge_network::PgeMsgApp::nMessageMaxLength);
+            assert(sizeof(MsgUserCmdMove) <= pge_network::MsgApp::nMessageMaxLength);
             memset(&pkt, 0, sizeof(pkt));
             // m_connHandleServerSide is ignored in this message
             //pkt.m_connHandleServerSide = connHandleServerSide;
@@ -115,7 +115,7 @@ namespace ElteFailMsg
             const TPRREfloat y, 
             const TPRREfloat z)
         {
-            assert(sizeof(MsgUserUpdate) <= pge_network::PgeMsgApp::nMessageMaxLength);
+            assert(sizeof(MsgUserUpdate) <= pge_network::MsgApp::nMessageMaxLength);
             memset(&pkt, 0, sizeof(pkt));
             pkt.m_connHandleServerSide = connHandleServerSide;
             pkt.pktId = pge_network::PgePktId::APP;
