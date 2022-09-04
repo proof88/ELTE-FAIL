@@ -186,6 +186,9 @@
     <ClInclude Include="..\..\PGE\PGE\Network\PgeServer.h">
       <Filter>Header Files\PGE\Network</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\PGEcfgFile.h">
+      <Filter>Header Files\PGE</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CustomPGE.cpp">
