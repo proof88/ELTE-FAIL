@@ -13,7 +13,7 @@
 
 #include "../../../PGE/PGE/Network/PgePacket.h"
 
-namespace ElteFailMsg
+namespace elte_fail
 {
 
     enum class ElteFailMsgId : pge_network::TPgeMsgAppMsgId  /* underlying type should be same as type of MsgApp::msgId */
@@ -56,9 +56,9 @@ namespace ElteFailMsg
             memset(&pkt, 0, sizeof(pkt));
             pkt.m_connHandleServerSide = connHandleServerSide;
             pkt.pktId = pge_network::PgePktId::APP;
-            pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserSetup::id);
+            pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserSetup::id);
 
-            ElteFailMsg::MsgUserSetup& msgUserSetup = reinterpret_cast<ElteFailMsg::MsgUserSetup&>(pkt.msg.app.cData);
+            elte_fail::MsgUserSetup& msgUserSetup = reinterpret_cast<elte_fail::MsgUserSetup&>(pkt.msg.app.cData);
             msgUserSetup.m_bCurrentClient = bCurrentClient;
             strncpy_s(msgUserSetup.m_szUserName, nUserNameMaxLength, sUserName.c_str(), sUserName.length());
             strncpy_s(msgUserSetup.m_szTrollfaceTex, nTrollfaceTexMaxLength, sTrollFaceTex.c_str(), sTrollFaceTex.length());
@@ -89,9 +89,9 @@ namespace ElteFailMsg
             // m_connHandleServerSide is ignored in this message
             //pkt.m_connHandleServerSide = connHandleServerSide;
             pkt.pktId = pge_network::PgePktId::APP;
-            pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserCmdMove::id);
+            pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserCmdMove::id);
 
-            ElteFailMsg::MsgUserCmdMove& msgUserCmdMove = reinterpret_cast<ElteFailMsg::MsgUserCmdMove&>(pkt.msg.app.cData);
+            elte_fail::MsgUserCmdMove& msgUserCmdMove = reinterpret_cast<elte_fail::MsgUserCmdMove&>(pkt.msg.app.cData);
             msgUserCmdMove.m_dirHorizontal = dirHorizontal;
             msgUserCmdMove.m_dirVertical = dirVertical;
 
@@ -118,9 +118,9 @@ namespace ElteFailMsg
             memset(&pkt, 0, sizeof(pkt));
             pkt.m_connHandleServerSide = connHandleServerSide;
             pkt.pktId = pge_network::PgePktId::APP;
-            pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(ElteFailMsg::MsgUserUpdate::id);
+            pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserUpdate::id);
 
-            ElteFailMsg::MsgUserUpdate& msgUserCmdUpdate = reinterpret_cast<ElteFailMsg::MsgUserUpdate&>(pkt.msg.app.cData);
+            elte_fail::MsgUserUpdate& msgUserCmdUpdate = reinterpret_cast<elte_fail::MsgUserUpdate&>(pkt.msg.app.cData);
             msgUserCmdUpdate.m_pos.x = x;
             msgUserCmdUpdate.m_pos.y = y;
             msgUserCmdUpdate.m_pos.z = z;
@@ -131,4 +131,4 @@ namespace ElteFailMsg
         TXYZ m_pos;
     };
 
-} // namespace ElteFailMsg
+} // namespace elte_fail

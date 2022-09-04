@@ -81,11 +81,11 @@ private:
 
     // ---------------------------------------------------------------------------
 
-    void genUniqueUserName(char szNewUserName[ElteFailMsg::MsgUserSetup::nUserNameMaxLength]) const;
+    void genUniqueUserName(char szNewUserName[elte_fail::MsgUserSetup::nUserNameMaxLength]) const;
     void WritePlayerList();
-    void HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const ElteFailMsg::MsgUserSetup& msg);
+    void HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserSetup& msg);
     void HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserConnected& msg);
     void HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserDisconnected& msg);
-    void HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const ElteFailMsg::MsgUserCmdMove& msg);
-    void HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const ElteFailMsg::MsgUserUpdate& msg);
+    void HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserCmdMove& msg);
+    void HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserUpdate& msg);
 }; // class CustomPGE
