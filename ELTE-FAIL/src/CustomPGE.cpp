@@ -106,30 +106,30 @@ void CustomPGE::onGameInitialized()
     PRRETexture* const tex1 = getPRRE().getTextureManager().createFromFile("gamedata\\proba128x128x24.bmp");
 
     {   // create box object internally
-        box1 = getPRRE().getObject3DManager().createBox(1, 1, 1);
-        box1->getPosVec().SetZ(2.0f);
-        box1->getPosVec().SetX(1.5f);
-        box1->SetOccluder(true);
-        box1->SetOcclusionTested(false);
+        m_box1 = getPRRE().getObject3DManager().createBox(1, 1, 1);
+        m_box1->getPosVec().SetZ(2.0f);
+        m_box1->getPosVec().SetX(1.5f);
+        m_box1->SetOccluder(true);
+        m_box1->SetOcclusionTested(false);
 
         // since a while this vertex coloring is not working
-        box1->getMaterial().getColors()[0].red = 1.0f;
-        box1->getMaterial().getColors()[0].green = 0.0f;
-        box1->getMaterial().getColors()[0].blue = 0.0f;
-        box1->getMaterial().getColors()[0].alpha = 0.0f;
-        box1->getMaterial().getColors()[9].red = 1.0f;
-        box1->getMaterial().getColors()[9].green = 0.0f;
-        box1->getMaterial().getColors()[9].blue = 0.0f;
-        box1->getMaterial().getColors()[9].alpha = 0.0f;
+        m_box1->getMaterial().getColors()[0].red = 1.0f;
+        m_box1->getMaterial().getColors()[0].green = 0.0f;
+        m_box1->getMaterial().getColors()[0].blue = 0.0f;
+        m_box1->getMaterial().getColors()[0].alpha = 0.0f;
+        m_box1->getMaterial().getColors()[9].red = 1.0f;
+        m_box1->getMaterial().getColors()[9].green = 0.0f;
+        m_box1->getMaterial().getColors()[9].blue = 0.0f;
+        m_box1->getMaterial().getColors()[9].alpha = 0.0f;
 
-        box1->getMaterial().setTexture(tex1);
-        box1->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
+        m_box1->getMaterial().setTexture(tex1);
+        m_box1->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
     }
     
     {   // load box object from file
-        box2 = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\cube.obj");
-        box2->setVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
-        box2->getPosVec().SetZ(4);
+        m_box2 = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\cube.obj");
+        m_box2->setVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
+        m_box2->getPosVec().SetZ(4);
     }
     
     /*       
@@ -232,10 +232,10 @@ void CustomPGE::onGameInitialized()
     {
         if ((entry.path().extension().string() == ".bmp"))
         {
-            trollFaces.insert(entry.path().string());
+            m_trollFaces.insert(entry.path().string());
         }
     }
-    getConsole().OLn("%s() Server parsed %d trollfaces", __func__, trollFaces.size());
+    getConsole().OLn("%s() Server parsed %d trollfaces", __func__, m_trollFaces.size());
     
     getPRRE().getUImanager().addText("almafaALMAFA012345óöüÓÕÛ_+", 10, 10);
 
@@ -309,9 +309,9 @@ void CustomPGE::onGameRunning()
             10, 110);
     }
 
-    if ( box1 != NULL )
+    if (m_box1 != NULL )
     {
-       box1->getAngleVec().SetY( box1->getAngleVec().getY() + 0.2f );
+        m_box1->getAngleVec().SetY(m_box1->getAngleVec().getY() + 0.2f );
     }
 
     if (input.getKeyboard().isKeyPressed(VK_ESCAPE))
@@ -346,9 +346,9 @@ void CustomPGE::onGameRunning()
 
     if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('1')) )
     {
-        if ( box1 != NULL )
+        if (m_box1 != NULL )
         {
-            box1->SetRenderingAllowed( !box1->isRenderingAllowed() );
+            m_box1->SetRenderingAllowed( !m_box1->isRenderingAllowed() );
             Sleep(200); /* to make sure key is released, avoid bouncing */
         }
     }
@@ -422,7 +422,7 @@ void CustomPGE::onGameRunning()
     {
         //getPRRE().getCamera().getTargetVec().Set( box1->getPosVec().getX(), box1->getPosVec().getY(), box1->getPosVec().getZ() );
 
-        const auto it = m_mapPlayers.find(sUserName);
+        const auto it = m_mapPlayers.find(m_sUserName);
         if (it != m_mapPlayers.end())
         {
             PRREObject3D* const pPlayerObj = it->second.m_pObject3D;
@@ -486,8 +486,10 @@ void CustomPGE::onGameDestroying()
 {
     m_mapPlayers.clear();
 
-    delete box1;
-    box1 = NULL;
+    delete m_box1;
+    m_box1 = NULL;
+    delete m_box2;
+    m_box2 = NULL;
     getPRRE().getObject3DManager().DeleteAll();
 
     getConsole().Deinitialize();
@@ -540,15 +542,15 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
         getConsole().OLn("CustomPGE::%s(): this is me, my name is %s, connHandleServerSide: %u, my IP: %s",
             __func__, msg.m_szUserName, connHandleServerSide, msg.m_szIpAddress);
         // store our username so we can refer to it anytime later
-        sUserName = msg.m_szUserName;
+        m_sUserName = msg.m_szUserName;
 
         if (getNetwork().isServer())
         {
-            getPRRE().getUImanager().addText("Server, User name: " + sUserName, 10, 30);
+            getPRRE().getUImanager().addText("Server, User name: " + m_sUserName, 10, 30);
         }
         else
         {
-            getPRRE().getUImanager().addText("Client, User name: " + sUserName + "; IP: " + msg.m_szIpAddress, 10, 30);
+            getPRRE().getUImanager().addText("Client, User name: " + m_sUserName + "; IP: " + msg.m_szIpAddress, 10, 30);
         }
     }
     else
@@ -615,10 +617,10 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
     const char* szConnectedUserName = nullptr;
     std::string sTrollface;
 
-    if (trollFaces.size() > 0)
+    if (m_trollFaces.size() > 0)
     {
-        sTrollface = *trollFaces.begin();
-        trollFaces.erase(trollFaces.begin());
+        sTrollface = *m_trollFaces.begin();
+        m_trollFaces.erase(m_trollFaces.begin());
     }
     else
     {
@@ -730,7 +732,7 @@ void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle c
     if (getNetwork().isServer())
     {
         getConsole().OLn("CustomPGE::%s(): user %s disconnected and I'm server", __func__, sClientUserName.c_str());
-        trollFaces.insert(it->second.m_sTrollface);  // re-insert the unneeded trollface texture into the set
+        m_trollFaces.insert(it->second.m_sTrollface);  // re-insert the unneeded trollface texture into the set
     }
     else
     {
