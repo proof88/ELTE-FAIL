@@ -128,7 +128,7 @@ namespace elte_fail
             return true;
         }
 
-        TXYZ m_pos;
+        TXYZ m_pos;  // Z-coord is actually unused because it never gets changed during the whole gameplay ...
     };
 
 } // namespace elte_fail
