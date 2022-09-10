@@ -268,7 +268,41 @@ void CustomPGE::onGameInitialized()
     {
         getNetwork().getClient().getBlackListedAppMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserCmdMove::id));
 
-        if (!getNetwork().getClient().connectToServer("127.0.0.1"))
+        std::string sIp = "127.0.0.1";
+        std::ifstream f;
+        f.open("gyorsan.txt", std::ifstream::in);
+        if (!f.good())
+        {
+            getConsole().OLn("No gyorsan.txt found!");
+        }
+        else
+        {
+            getConsole().OLn("Found gyorsan.txt");
+            const std::streamsize nBuffSize = 1024;
+            char cLine[nBuffSize];
+            int i = 0;
+            while (!f.eof())
+            {
+                f.getline(cLine, nBuffSize);
+                // TODO: we should finally have a strClr() version for std::string or FINALLY UPGRADE TO NEWER CPP THAT MAYBE HAS THIS FUNCTIONALITY!!!
+                PFL::strClrLeads(cLine);
+                const std::string sTrimmedLine(cLine);
+                if (i == 0)
+                {
+                    sIp = sTrimmedLine;
+                    getConsole().OLn("IP override: %s", sIp.c_str());
+                }
+                else
+                {
+                    getConsole().OLn("Logging override: %s", sTrimmedLine.c_str());
+                    getConsole().SetLoggingState(sTrimmedLine.c_str(), true);
+                }
+                i++;
+            };
+            f.close();
+        }
+
+        if (!getNetwork().getClient().connectToServer(sIp))
         {
             PGE::showErrorDialog("Client has FAILED to establish connection to the server!");
             assert(false);
