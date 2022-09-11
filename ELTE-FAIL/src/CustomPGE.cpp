@@ -83,12 +83,18 @@ void CustomPGE::onGameInitializing()
 
     // Network logs
     getConsole().SetLoggingState("PGESysNET", true);
-    getConsole().SetLoggingState("PgeNetwork", true);
-    getConsole().SetLoggingState("PgeServer", true);
-    getConsole().SetLoggingState("PgeClient", true);
+    getConsole().SetLoggingState(getNetwork().getLoggerModuleName(), true);
+    getConsole().SetLoggingState(getNetwork().getServer().getLoggerModuleName(), true);
+    getConsole().SetLoggingState(getNetwork().getClient().getLoggerModuleName(), true);
+
+    // Misc engine logs
+    getConsole().SetLoggingState("PRREWindow", true);
 
     // Turn everything on for development only
     getConsole().SetLoggingState("4LLM0DUL3S", true);
+
+    // we need PGE::runGame() invoke EVERYTHING even when window is NOT active, and we will decide in onGameRunning() what NOT to do if window is inactive
+    SetInactiveLikeActive(true);
 }
 
 
@@ -324,8 +330,12 @@ void CustomPGE::onGameRunning()
 
     static bool bCameraLocked = true;
 
-    input.getMouse().SetCursorPos(window.getX() + window.getWidth()/2,
-                                  window.getY() + window.getHeight()/2);
+    if (window.isActive())
+    {
+        input.getMouse().SetCursorPos(
+            window.getX() + window.getWidth() / 2,
+            window.getY() + window.getHeight() / 2);
+    }
 
     if (!getNetwork().isServer())
     {
@@ -350,108 +360,111 @@ void CustomPGE::onGameRunning()
         m_box1->getAngleVec().SetY(m_box1->getAngleVec().getY() + 0.2f );
     }
 
-    if (input.getKeyboard().isKeyPressed(VK_ESCAPE))
+    if (window.isActive())
     {
-        window.Close();
-    }
-
-    if ( input.getKeyboard().isKeyPressed(VK_UP) )
-    {
-        getPRRE().getCamera().Move(0.01f);
-    }
-    if ( input.getKeyboard().isKeyPressed(VK_DOWN) )
-    {
-        getPRRE().getCamera().Move(-0.01f);
-    }
-    if ( input.getKeyboard().isKeyPressed(VK_LEFT) )
-    {
-        getPRRE().getCamera().Strafe(-0.01f);
-    }
-    if ( input.getKeyboard().isKeyPressed(VK_RIGHT) )
-    {
-        getPRRE().getCamera().Strafe(0.01f);
-    }
-    if ( input.getKeyboard().isKeyPressed(VK_SPACE) )
-    {
-        getPRRE().getCamera().Elevate(0.01f);
-    }
-    if ( input.getKeyboard().isKeyPressed(VK_CONTROL) )
-    {
-        getPRRE().getCamera().Elevate(-0.01f);
-    }
-
-    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('1')) )
-    {
-        if (m_box1 != NULL )
+        if (input.getKeyboard().isKeyPressed(VK_ESCAPE))
         {
-            m_box1->SetRenderingAllowed( !m_box1->isRenderingAllowed() );
-            Sleep(200); /* to make sure key is released, avoid bouncing */
+            window.Close();
         }
-    }
 
-    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('2')) )
-    {
-        PRREObject3D* snailobj = (PRREObject3D*) getPRRE().getObject3DManager().getByFilename("gamedata\\models\\snail_proofps\\snail.obj");
-        if ( snailobj != NULL )
+        if (input.getKeyboard().isKeyPressed(VK_UP))
         {
-            snailobj->SetRenderingAllowed( !snailobj->isRenderingAllowed() );
+            getPRRE().getCamera().Move(0.01f);
+        }
+        if (input.getKeyboard().isKeyPressed(VK_DOWN))
+        {
+            getPRRE().getCamera().Move(-0.01f);
+        }
+        if (input.getKeyboard().isKeyPressed(VK_LEFT))
+        {
+            getPRRE().getCamera().Strafe(-0.01f);
+        }
+        if (input.getKeyboard().isKeyPressed(VK_RIGHT))
+        {
+            getPRRE().getCamera().Strafe(0.01f);
+        }
+        if (input.getKeyboard().isKeyPressed(VK_SPACE))
+        {
+            getPRRE().getCamera().Elevate(0.01f);
+        }
+        if (input.getKeyboard().isKeyPressed(VK_CONTROL))
+        {
+            getPRRE().getCamera().Elevate(-0.01f);
+        }
+
+        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('1')))
+        {
+            if (m_box1 != NULL)
+            {
+                m_box1->SetRenderingAllowed(!m_box1->isRenderingAllowed());
+                Sleep(200); /* to make sure key is released, avoid bouncing */
+            }
+        }
+
+        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('2')))
+        {
+            PRREObject3D* snailobj = (PRREObject3D*)getPRRE().getObject3DManager().getByFilename("gamedata\\models\\snail_proofps\\snail.obj");
+            if (snailobj != NULL)
+            {
+                snailobj->SetRenderingAllowed(!snailobj->isRenderingAllowed());
+                Sleep(200);
+            }
+        }
+
+        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('3')))
+        {
+            PRREObject3D* arenaobj = (PRREObject3D*)getPRRE().getObject3DManager().getByFilename("gamedata\\models\\arena\\arena.obj");
+            if (arenaobj != NULL)
+            {
+                arenaobj->SetRenderingAllowed(!arenaobj->isRenderingAllowed());
+                Sleep(200);
+            }
+        }
+
+        elte_fail::HorizontalDirection horDir = elte_fail::HorizontalDirection::NONE;
+        elte_fail::VerticalDirection verDir = elte_fail::VerticalDirection::NONE;
+        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('w')))
+        {
+            verDir = elte_fail::VerticalDirection::UP;
+        }
+        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('s')))
+        {
+            verDir = elte_fail::VerticalDirection::DOWN;
+        }
+        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('a')))
+        {
+            horDir = elte_fail::HorizontalDirection::LEFT;
+        }
+        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('d')))
+        {
+            horDir = elte_fail::HorizontalDirection::RIGHT;
+        }
+
+        if ((horDir != elte_fail::HorizontalDirection::NONE) || (verDir != elte_fail::VerticalDirection::NONE))
+        {
+            pge_network::PgePacket pkt;
+            elte_fail::MsgUserCmdMove::initPkt(pkt, horDir, verDir);
+
+            if (getNetwork().isServer())
+            {
+                // inject this packet to server's queue
+                // server will properly update its own position and send update to all clients too based on current state of HandleUserCmdMove()
+                // TODO: for sure an inject function would be nice which automatically fills in server username!
+                getNetwork().getServer().getPacketQueue().push_back(pkt);
+            }
+            else
+            {
+                // here username is not needed since this is sent by client, and server will identify the client anyway based on connection id
+                getNetwork().getClient().SendToServer(pkt);
+            }
+        }
+
+        // L for camera Lock
+        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('l')))
+        {
+            bCameraLocked = !bCameraLocked;
             Sleep(200);
         }
-    }
-
-    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('3')) )
-    {
-        PRREObject3D* arenaobj = (PRREObject3D*) getPRRE().getObject3DManager().getByFilename("gamedata\\models\\arena\\arena.obj");
-        if ( arenaobj != NULL )
-        {
-            arenaobj->SetRenderingAllowed( !arenaobj->isRenderingAllowed() );
-            Sleep(200);
-        }
-    }
-
-    elte_fail::HorizontalDirection horDir = elte_fail::HorizontalDirection::NONE;
-    elte_fail::VerticalDirection verDir = elte_fail::VerticalDirection::NONE;
-    if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('w')))
-    {
-        verDir = elte_fail::VerticalDirection::UP;
-    }
-    if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('s')))
-    {
-        verDir = elte_fail::VerticalDirection::DOWN;
-    }
-    if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('a')))
-    {
-        horDir = elte_fail::HorizontalDirection::LEFT;
-    }
-    if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('d')))
-    {
-        horDir = elte_fail::HorizontalDirection::RIGHT;
-    }
-
-    if ((horDir != elte_fail::HorizontalDirection::NONE) || (verDir != elte_fail::VerticalDirection::NONE))
-    {
-        pge_network::PgePacket pkt;
-        elte_fail::MsgUserCmdMove::initPkt(pkt, horDir, verDir);
-
-        if (getNetwork().isServer())
-        {
-            // inject this packet to server's queue
-            // server will properly update its own position and send update to all clients too based on current state of HandleUserCmdMove()
-            // TODO: for sure an inject function would be nice which automatically fills in server username!
-            getNetwork().getServer().getPacketQueue().push_back(pkt);
-        }
-        else
-        {
-            // here username is not needed since this is sent by client, and server will identify the client anyway based on connection id
-            getNetwork().getClient().SendToServer(pkt);
-        }
-    }
-
-    // L for camera Lock
-    if ( input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('l')) )
-    {
-        bCameraLocked = !bCameraLocked;
-        Sleep(200);
     }
 
     if ( bCameraLocked )
