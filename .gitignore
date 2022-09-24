@@ -335,3 +335,4 @@ ELTE-FAIL/GameNetworkingSockets.dll
 ELTE-FAIL/libcrypto-3.dll
 ELTE-FAIL/libprotobufd.dll
 *.exe
+ELTE-FAIL/libprotobuf.dll
