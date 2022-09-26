@@ -40,7 +40,9 @@ CustomPGE* CustomPGE::createAndGetCustomPGEinstance()
     This is the only usable ctor, this is used by the static createAndGet().
 */
 CustomPGE::CustomPGE(const char* gameTitle) :
-    PGE(gameTitle)
+    PGE(gameTitle),
+    m_bBackSpaceReleased(false),
+    m_bShowGuiDemo(false)
 {
 
 } // CustomPGE(...)
@@ -332,9 +334,12 @@ void CustomPGE::onGameRunning()
 
     if (window.isActive())
     {
-        input.getMouse().SetCursorPos(
-            window.getX() + window.getWidth() / 2,
-            window.getY() + window.getHeight() / 2);
+        if (!m_bShowGuiDemo)
+        {
+            input.getMouse().SetCursorPos(
+                window.getX() + window.getWidth() / 2,
+                window.getY() + window.getHeight() / 2);
+        }
     }
 
     if (!getNetwork().isServer())
@@ -365,6 +370,26 @@ void CustomPGE::onGameRunning()
         if (input.getKeyboard().isKeyPressed(VK_ESCAPE))
         {
             window.Close();
+        }
+
+        if (input.getKeyboard().isKeyPressed(VK_BACK))
+        {
+            if (m_bBackSpaceReleased)
+            {
+                m_bShowGuiDemo = !m_bShowGuiDemo;
+                getPRRE().ShowGuiDemo(m_bShowGuiDemo);
+                getPRRE().getWindow().SetCursorVisible(m_bShowGuiDemo);
+                m_bBackSpaceReleased = false;
+            }
+        }
+        else
+        {
+            m_bBackSpaceReleased = true;
+        }
+
+        if (m_bShowGuiDemo)
+        {
+            return;
         }
 
         if (input.getKeyboard().isKeyPressed(VK_UP))
