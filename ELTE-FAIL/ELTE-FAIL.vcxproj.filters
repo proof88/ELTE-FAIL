@@ -46,6 +46,9 @@
     <Filter Include="Header Files\PGE\Network">
       <UniqueIdentifier>{231fcc35-6f09-411c-9855-aca41038ad47}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\PGE\Config">
+      <UniqueIdentifier>{132dafa6-7dad-47ae-a8bf-7b3d2858b010}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\BaseConsts.h">
@@ -186,8 +189,11 @@
     <ClInclude Include="..\..\PGE\PGE\Network\PgeServer.h">
       <Filter>Header Files\PGE\Network</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\PGE\PGE\PGEcfgFile.h">
-      <Filter>Header Files\PGE</Filter>
+    <ClInclude Include="..\..\PGE\PGE\Config\PGEcfgFile.h">
+      <Filter>Header Files\PGE\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\Config\PGEcfgVariable.h">
+      <Filter>Header Files\PGE\Config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
