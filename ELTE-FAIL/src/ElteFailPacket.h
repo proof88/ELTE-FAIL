@@ -110,9 +110,9 @@ namespace elte_fail
         static bool initPkt(
             pge_network::PgePacket& pkt,
             const pge_network::PgeNetworkConnectionHandle& connHandleServerSide,
-            const TPRREfloat x,
-            const TPRREfloat y, 
-            const TPRREfloat z)
+            const TPurefloat x,
+            const TPurefloat y, 
+            const TPurefloat z)
         {
             assert(sizeof(MsgUserUpdate) <= pge_network::MsgApp::nMessageMaxLength);
             memset(&pkt, 0, sizeof(pkt));

@@ -14,9 +14,9 @@
 #include <set>
 #include <sstream>
 
-#include "../../../PGE/PGE/PRRE/include/external/PRREuiManager.h"
-#include "../../../PGE/PGE/PRRE/include/external/Display/PRREWindow.h"
-#include "../../../PGE/PGE/PRRE/include/external/PRRECamera.h"
+#include "../../../PGE/PGE/Pure/include/external/PureUiManager.h"
+#include "../../../PGE/PGE/Pure/include/external/Display/PureWindow.h"
+#include "../../../PGE/PGE/Pure/include/external/PureCamera.h"
 #include "../../../CConsole/CConsole/src/CConsole.h"
 
 
@@ -90,7 +90,7 @@ void CustomPGE::onGameInitializing()
     getConsole().SetLoggingState(getNetwork().getClient().getLoggerModuleName(), true);
 
     // Misc engine logs
-    getConsole().SetLoggingState("PRREWindow", true);
+    getConsole().SetLoggingState("PureWindow", true);
 
     // Turn everything on for development only
     getConsole().SetLoggingState("4LLM0DUL3S", true);
@@ -110,13 +110,13 @@ void CustomPGE::onGameInitialized()
     // Dont want to see logs of loading of resources cause I'm debugging network now
     getConsole().SetLoggingState("4LLM0DUL3S", false);
 
-    getPRRE().getCamera().SetNearPlane(0.1f);
-    getPRRE().getCamera().SetFarPlane(100.0f);
+    getPure().getCamera().SetNearPlane(0.1f);
+    getPure().getCamera().SetFarPlane(100.0f);
 
-    PRRETexture* const tex1 = getPRRE().getTextureManager().createFromFile("gamedata\\proba128x128x24.bmp");
+    PureTexture* const tex1 = getPure().getTextureManager().createFromFile("gamedata\\proba128x128x24.bmp");
 
     {   // create box object internally
-        m_box1 = getPRRE().getObject3DManager().createBox(1, 1, 1);
+        m_box1 = getPure().getObject3DManager().createBox(1, 1, 1);
         m_box1->getPosVec().SetZ(2.0f);
         m_box1->getPosVec().SetX(1.5f);
         m_box1->SetOccluder(true);
@@ -133,46 +133,46 @@ void CustomPGE::onGameInitialized()
         m_box1->getMaterial().getColors()[9].alpha = 0.0f;
 
         m_box1->getMaterial().setTexture(tex1);
-        m_box1->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
+        m_box1->setVertexTransferMode(Pure_VT_DYN_IND_SVA_GEN);
     }
     
     {   // load box object from file
-        m_box2 = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\cube.obj");
-        m_box2->setVertexTransferMode(PRRE_VT_DYN_DIR_1_BY_1);
+        m_box2 = getPure().getObject3DManager().createFromFile("gamedata\\models\\cube.obj");
+        m_box2->setVertexTransferMode(Pure_VT_DYN_DIR_1_BY_1);
         m_box2->getPosVec().SetZ(4);
     }
     
     /*       
-    PRREObject3D* const plane1 = getPRRE().getObject3DManager().createPlane(2, 2);
+    PureObject3D* const plane1 = getPure().getObject3DManager().createPlane(2, 2);
     plane1->getPosVec().SetX(0);
     plane1->getPosVec().SetZ(2);
     plane1->getMaterial().setTexture(tex1);
-    plane1->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
+    plane1->setVertexTransferMode(Pure_VT_DYN_IND_SVA_GEN);
     */
 
     {   // snail
-        PRREObject3D* const snail = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail.obj");
+        PureObject3D* const snail = getPure().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail.obj");
         snail->SetScaling(0.02f);
         snail->getPosVec().SetX(-1.5f);
         snail->getPosVec().SetZ(2.7f);
 
-        PRREObject3D* snail_lm = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail_lm.obj");
+        PureObject3D* snail_lm = getPure().getObject3DManager().createFromFile("gamedata\\models\\snail_proofps\\snail_lm.obj");
         snail_lm->SetScaling(0.02f);
         snail_lm->Hide();
 
         // dealing with lightmaps ...
         if (snail->getCount() == snail_lm->getCount())
         {
-            for (TPRREint i = 0; i < snail->getCount(); i++)
+            for (TPureint i = 0; i < snail->getCount(); i++)
             {
-                PRREObject3D* const snailSub = (PRREObject3D*)snail->getAttachedAt(i);
+                PureObject3D* const snailSub = (PureObject3D*)snail->getAttachedAt(i);
                 // assuming that snail_lm has the same subobjects and vertex count as snail
-                PRREObject3D* const snailLMSub = (PRREObject3D*)snail_lm->getAttachedAt(i);
+                PureObject3D* const snailLMSub = (PureObject3D*)snail_lm->getAttachedAt(i);
                 if (snailSub && snailLMSub)
                 {
                     // copying lightmap data into snail material's 2nd layer
                     snailSub->getMaterial(false).copyFromMaterial(snailLMSub->getMaterial(false), 1, 0);
-                    snailSub->getMaterial(false).setBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
+                    snailSub->getMaterial(false).setBlendFuncs(Pure_SRC_ALPHA, Pure_ONE_MINUS_SRC_ALPHA, 1);
                 }
             }
         }
@@ -181,7 +181,7 @@ void CustomPGE::onGameInitialized()
             getConsole().EOLn("snail->getCount() != snail_lm->getCount(): %d != %d", snail->getCount(), snail_lm->getCount());
         }
 
-        snail->setVertexTransferMode(PRRE_VT_DYN_IND_SVA_GEN);
+        snail->setVertexTransferMode(Pure_VT_DYN_IND_SVA_GEN);
         snail->SetDoubleSided(true);
 
         // at this point, we should be safe to delete snail_lm since object's dtor calls material's dtor which doesn't free up the textures
@@ -192,36 +192,36 @@ void CustomPGE::onGameInitialized()
     }
 
     /*
-    PRREObject3D* snail_clone = getPRRE().getObject3DManager().createCloned(*snail);
+    PureObject3D* snail_clone = getPure().getObject3DManager().createCloned(*snail);
     snail_clone->getPosVec().SetX(-1);
     snail->SetOcclusionTested(false);
     */
 
     {   // arena
-        getPRRE().getTextureManager().setDefaultIsoFilteringMode(PRRE_ISO_LINEAR_MIPMAP_LINEAR, PRRE_ISO_LINEAR);
+        getPure().getTextureManager().setDefaultIsoFilteringMode(Pure_ISO_LINEAR_MIPMAP_LINEAR, Pure_ISO_LINEAR);
 
-        PRREObject3D* const arena = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\arena\\arena.obj");
+        PureObject3D* const arena = getPure().getObject3DManager().createFromFile("gamedata\\models\\arena\\arena.obj");
         arena->SetScaling(0.002f);
         arena->getPosVec().SetZ(2.f);
         arena->getPosVec().SetY(-1.5f);
 
-        PRREObject3D* arena_lm = getPRRE().getObject3DManager().createFromFile("gamedata\\models\\arena\\arena_lm.obj");
+        PureObject3D* arena_lm = getPure().getObject3DManager().createFromFile("gamedata\\models\\arena\\arena_lm.obj");
         arena_lm->SetScaling(0.02f);
         arena_lm->Hide();
 
         // dealing with lightmaps ...
         if (arena->getCount() == arena_lm->getCount())
         {
-            for (TPRREint i = 0; i < arena->getCount(); i++)
+            for (TPureint i = 0; i < arena->getCount(); i++)
             {
-                PRREObject3D* const arenaSub = (PRREObject3D*)arena->getAttachedAt(i);
+                PureObject3D* const arenaSub = (PureObject3D*)arena->getAttachedAt(i);
                 // assuming that arena_lm has the same subobjects and vertex count as arena
-                PRREObject3D* const arenaLMSub = (PRREObject3D*)arena_lm->getAttachedAt(i);
+                PureObject3D* const arenaLMSub = (PureObject3D*)arena_lm->getAttachedAt(i);
                 if (arenaSub && arenaLMSub)
                 {
                     // copying lightmap data into snail material's 2nd layer
                     arenaSub->getMaterial(false).copyFromMaterial(arenaLMSub->getMaterial(false), 1, 0);
-                    arenaSub->getMaterial(false).setBlendFuncs(PRRE_SRC_ALPHA, PRRE_ONE_MINUS_SRC_ALPHA, 1);
+                    arenaSub->getMaterial(false).setBlendFuncs(Pure_SRC_ALPHA, Pure_ONE_MINUS_SRC_ALPHA, 1);
                 }
             }
         }
@@ -230,7 +230,7 @@ void CustomPGE::onGameInitialized()
             getConsole().EOLn("arena->getCount() != arenaLMSub->getCount(): %d != %d", arena->getCount(), arena_lm->getCount());
         }
 
-        arena->setVertexTransferMode(PRRE_VT_DYN_DIR_SVA_GEN);
+        arena->setVertexTransferMode(Pure_VT_DYN_DIR_SVA_GEN);
 
         delete arena_lm;
     }
@@ -247,12 +247,12 @@ void CustomPGE::onGameInitialized()
     }
     getConsole().OLn("%s() Server parsed %d trollfaces", __func__, m_trollFaces.size());
     
-    getPRRE().getUImanager().addText("almafaALMAFA012345óöüÓÕÛ_+", 10, 10);
+    getPure().getUImanager().addText("almafaALMAFA012345óöüÓÕÛ_+", 10, 10);
 
     getConsole().OO();
     getConsole().OLn("");
 
-    getPRRE().WriteList();
+    getPure().WriteList();
 
     if (getNetwork().isServer())
     {
@@ -327,7 +327,7 @@ void CustomPGE::onGameInitialized()
 */
 void CustomPGE::onGameRunning()
 {
-    PRREWindow& window = getPRRE().getWindow();
+    PureWindow& window = getPure().getWindow();
     const PGEInputHandler& input = PGEInputHandler::createAndGet();
 
     static bool bCameraLocked = true;
@@ -344,18 +344,18 @@ void CustomPGE::onGameRunning()
 
     if (!getNetwork().isServer())
     {
-        getPRRE().getUImanager().text(
+        getPure().getUImanager().text(
             "Ping: " + std::to_string(getNetwork().getClient().getPing(true)) + " ms",
             10, 50);
-        getPRRE().getUImanager().text(
+        getPure().getUImanager().text(
             "Quality: local: " + std::to_string(getNetwork().getClient().getQualityLocal(false)) +
             "; remote: " + std::to_string(getNetwork().getClient().getQualityRemote(false)),
             10, 70);
-        getPRRE().getUImanager().text(
+        getPure().getUImanager().text(
             "Tx Speed: " + std::to_string(getNetwork().getClient().getTxByteRate(false)) +
             " Bps; Rx Speed: " + std::to_string(getNetwork().getClient().getRxByteRate(false)) + " Bps",
             10, 90);
-        getPRRE().getUImanager().text(
+        getPure().getUImanager().text(
             "Internal Queue Time: " + std::to_string(getNetwork().getClient().getInternalQueueTimeUSecs(false)) + " us",
             10, 110);
     }
@@ -377,8 +377,8 @@ void CustomPGE::onGameRunning()
             if (m_bBackSpaceReleased)
             {
                 m_bShowGuiDemo = !m_bShowGuiDemo;
-                getPRRE().ShowGuiDemo(m_bShowGuiDemo);
-                getPRRE().getWindow().SetCursorVisible(m_bShowGuiDemo);
+                getPure().ShowGuiDemo(m_bShowGuiDemo);
+                getPure().getWindow().SetCursorVisible(m_bShowGuiDemo);
                 m_bBackSpaceReleased = false;
             }
         }
@@ -394,27 +394,27 @@ void CustomPGE::onGameRunning()
 
         if (input.getKeyboard().isKeyPressed(VK_UP))
         {
-            getPRRE().getCamera().Move(0.01f);
+            getPure().getCamera().Move(0.01f);
         }
         if (input.getKeyboard().isKeyPressed(VK_DOWN))
         {
-            getPRRE().getCamera().Move(-0.01f);
+            getPure().getCamera().Move(-0.01f);
         }
         if (input.getKeyboard().isKeyPressed(VK_LEFT))
         {
-            getPRRE().getCamera().Strafe(-0.01f);
+            getPure().getCamera().Strafe(-0.01f);
         }
         if (input.getKeyboard().isKeyPressed(VK_RIGHT))
         {
-            getPRRE().getCamera().Strafe(0.01f);
+            getPure().getCamera().Strafe(0.01f);
         }
         if (input.getKeyboard().isKeyPressed(VK_SPACE))
         {
-            getPRRE().getCamera().Elevate(0.01f);
+            getPure().getCamera().Elevate(0.01f);
         }
         if (input.getKeyboard().isKeyPressed(VK_CONTROL))
         {
-            getPRRE().getCamera().Elevate(-0.01f);
+            getPure().getCamera().Elevate(-0.01f);
         }
 
         if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('1')))
@@ -428,7 +428,7 @@ void CustomPGE::onGameRunning()
 
         if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('2')))
         {
-            PRREObject3D* snailobj = (PRREObject3D*)getPRRE().getObject3DManager().getByFilename("gamedata\\models\\snail_proofps\\snail.obj");
+            PureObject3D* snailobj = (PureObject3D*)getPure().getObject3DManager().getByFilename("gamedata\\models\\snail_proofps\\snail.obj");
             if (snailobj != NULL)
             {
                 snailobj->SetRenderingAllowed(!snailobj->isRenderingAllowed());
@@ -438,7 +438,7 @@ void CustomPGE::onGameRunning()
 
         if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('3')))
         {
-            PRREObject3D* arenaobj = (PRREObject3D*)getPRRE().getObject3DManager().getByFilename("gamedata\\models\\arena\\arena.obj");
+            PureObject3D* arenaobj = (PureObject3D*)getPure().getObject3DManager().getByFilename("gamedata\\models\\arena\\arena.obj");
             if (arenaobj != NULL)
             {
                 arenaobj->SetRenderingAllowed(!arenaobj->isRenderingAllowed());
@@ -494,15 +494,15 @@ void CustomPGE::onGameRunning()
 
     if ( bCameraLocked )
     {
-        //getPRRE().getCamera().getTargetVec().Set( box1->getPosVec().getX(), box1->getPosVec().getY(), box1->getPosVec().getZ() );
+        //getPure().getCamera().getTargetVec().Set( box1->getPosVec().getX(), box1->getPosVec().getY(), box1->getPosVec().getZ() );
 
         const auto it = m_mapPlayers.find(m_sUserName);
         if (it != m_mapPlayers.end())
         {
-            PRREObject3D* const pPlayerObj = it->second.m_pObject3D;
+            PureObject3D* const pPlayerObj = it->second.m_pObject3D;
             if (pPlayerObj)
             {
-                getPRRE().getCamera().getTargetVec().Set(pPlayerObj->getPosVec().getX(), pPlayerObj->getPosVec().getY(), pPlayerObj->getPosVec().getZ());
+                getPure().getCamera().getTargetVec().Set(pPlayerObj->getPosVec().getX(), pPlayerObj->getPosVec().getY(), pPlayerObj->getPosVec().getZ());
             }
         }
     }
@@ -564,7 +564,7 @@ void CustomPGE::onGameDestroying()
     m_box1 = NULL;
     delete m_box2;
     m_box2 = NULL;
-    getPRRE().getObject3DManager().DeleteAll();
+    getPure().getObject3DManager().DeleteAll();
 
     getConsole().Deinitialize();
 } // onGameRunning()
@@ -620,11 +620,11 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
 
         if (getNetwork().isServer())
         {
-            getPRRE().getUImanager().addText("Server, User name: " + m_sUserName, 10, 30);
+            getPure().getUImanager().addText("Server, User name: " + m_sUserName, 10, 30);
         }
         else
         {
-            getPRRE().getUImanager().addText("Client, User name: " + m_sUserName + "; IP: " + msg.m_szIpAddress, 10, 30);
+            getPure().getUImanager().addText("Client, User name: " + m_sUserName + "; IP: " + msg.m_szIpAddress, 10, 30);
         }
     }
     else
@@ -639,7 +639,7 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
     m_mapPlayers[msg.m_szUserName].m_connHandleServerSide = connHandleServerSide;
     m_mapPlayers[msg.m_szUserName].m_sIpAddress = msg.m_szIpAddress;
 
-    PRREObject3D* const plane = getPRRE().getObject3DManager().createPlane(0.5f, 0.5f);
+    PureObject3D* const plane = getPure().getObject3DManager().createPlane(0.5f, 0.5f);
     if (!plane)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to create object for user %s!", __func__, msg.m_szUserName);
@@ -653,7 +653,7 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
 
     if (!m_mapPlayers[msg.m_szUserName].m_sTrollface.empty())
     {
-        PRRETexture* const tex = getPRRE().getTextureManager().createFromFile(m_mapPlayers[msg.m_szUserName].m_sTrollface.c_str());
+        PureTexture* const tex = getPure().getTextureManager().createFromFile(m_mapPlayers[msg.m_szUserName].m_sTrollface.c_str());
         if (tex)
         {
             plane->getMaterial().setTexture(tex);
@@ -670,8 +670,8 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
             __func__, msg.m_szUserName);
     }
 
-    plane->setVertexModifyingHabit(PRRE_VMOD_STATIC);
-    plane->setVertexReferencingMode(PRRE_VREF_INDEXED);
+    plane->setVertexModifyingHabit(Pure_VMOD_STATIC);
+    plane->setVertexReferencingMode(Pure_VREF_INDEXED);
 
     m_mapPlayers[msg.m_szUserName].m_pObject3D = plane;
 
@@ -851,7 +851,7 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
 
     const std::string& sClientUserName = it->first;
 
-    PRREObject3D* obj = it->second.m_pObject3D;
+    PureObject3D* obj = it->second.m_pObject3D;
     if (!obj)
     {
         getConsole().EOLn("CustomPGE::%s(): user %s doesn't have associated Object3D!", __func__, sClientUserName.c_str());
@@ -916,7 +916,7 @@ void CustomPGE::HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHan
         return;
     }
 
-    PRREObject3D* obj = it->second.m_pObject3D;
+    PureObject3D* obj = it->second.m_pObject3D;
     if (!obj)
     {
         getConsole().EOLn("CustomPGE::%s(): user %s doesn't have associated Object3D!", __func__, it->first.c_str());

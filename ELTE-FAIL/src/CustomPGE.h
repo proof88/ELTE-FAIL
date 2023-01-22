@@ -10,7 +10,7 @@
 */
 
 #include "../../../PGE/PGE/PGE.h" // Using PGE.
-#include "../../../PGE/PGE/PRRE/include/external/Object3D/PRREObject3DManager.h"
+#include "../../../PGE/PGE/Pure/include/external/Object3D/PureObject3DManager.h"
 
 #include "BaseConsts.h"    // Constants, macros.
 #include "ElteFailPacket.h"
@@ -25,7 +25,7 @@ struct Player_t
                                                                            towards the server! Those connection handles are not related
                                                                            to each other! */
     std::string m_sTrollface;
-    PRREObject3D* m_pObject3D;
+    PureObject3D* m_pObject3D;
     std::string m_sIpAddress;
 };
 
@@ -71,8 +71,8 @@ protected:
     virtual void onGameDestroying() override;    /**< Freeing up game content here. */
 
 private:
-    PRREObject3D* m_box1;
-    PRREObject3D* m_box2;
+    PureObject3D* m_box1;
+    PureObject3D* m_box2;
     std::string m_sUserName;   /**< User name received from server in PgePktUserConnected (server instance also receives this from itself). */
     std::map<std::string, Player_t> m_mapPlayers;  /**< Connected players. Used by both server and clients. Key is user name. */
     // TODO: originally username was planned to be the key for above map, however if we see that we can always use connHandleServerSide to
