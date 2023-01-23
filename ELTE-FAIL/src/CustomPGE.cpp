@@ -133,12 +133,12 @@ void CustomPGE::onGameInitialized()
         m_box1->getMaterial().getColors()[9].alpha = 0.0f;
 
         m_box1->getMaterial().setTexture(tex1);
-        m_box1->setVertexTransferMode(Pure_VT_DYN_IND_SVA_GEN);
+        m_box1->setVertexTransferMode(PURE_VT_DYN_IND_SVA_GEN);
     }
     
     {   // load box object from file
         m_box2 = getPure().getObject3DManager().createFromFile("gamedata\\models\\cube.obj");
-        m_box2->setVertexTransferMode(Pure_VT_DYN_DIR_1_BY_1);
+        m_box2->setVertexTransferMode(PURE_VT_DYN_DIR_1_BY_1);
         m_box2->getPosVec().SetZ(4);
     }
     
@@ -147,7 +147,7 @@ void CustomPGE::onGameInitialized()
     plane1->getPosVec().SetX(0);
     plane1->getPosVec().SetZ(2);
     plane1->getMaterial().setTexture(tex1);
-    plane1->setVertexTransferMode(Pure_VT_DYN_IND_SVA_GEN);
+    plane1->setVertexTransferMode(PURE_VT_DYN_IND_SVA_GEN);
     */
 
     {   // snail
@@ -163,7 +163,7 @@ void CustomPGE::onGameInitialized()
         // dealing with lightmaps ...
         if (snail->getCount() == snail_lm->getCount())
         {
-            for (TPureint i = 0; i < snail->getCount(); i++)
+            for (TPureInt i = 0; i < snail->getCount(); i++)
             {
                 PureObject3D* const snailSub = (PureObject3D*)snail->getAttachedAt(i);
                 // assuming that snail_lm has the same subobjects and vertex count as snail
@@ -172,7 +172,7 @@ void CustomPGE::onGameInitialized()
                 {
                     // copying lightmap data into snail material's 2nd layer
                     snailSub->getMaterial(false).copyFromMaterial(snailLMSub->getMaterial(false), 1, 0);
-                    snailSub->getMaterial(false).setBlendFuncs(Pure_SRC_ALPHA, Pure_ONE_MINUS_SRC_ALPHA, 1);
+                    snailSub->getMaterial(false).setBlendFuncs(PURE_SRC_ALPHA, PURE_ONE_MINUS_SRC_ALPHA, 1);
                 }
             }
         }
@@ -181,7 +181,7 @@ void CustomPGE::onGameInitialized()
             getConsole().EOLn("snail->getCount() != snail_lm->getCount(): %d != %d", snail->getCount(), snail_lm->getCount());
         }
 
-        snail->setVertexTransferMode(Pure_VT_DYN_IND_SVA_GEN);
+        snail->setVertexTransferMode(PURE_VT_DYN_IND_SVA_GEN);
         snail->SetDoubleSided(true);
 
         // at this point, we should be safe to delete snail_lm since object's dtor calls material's dtor which doesn't free up the textures
@@ -198,7 +198,7 @@ void CustomPGE::onGameInitialized()
     */
 
     {   // arena
-        getPure().getTextureManager().setDefaultIsoFilteringMode(Pure_ISO_LINEAR_MIPMAP_LINEAR, Pure_ISO_LINEAR);
+        getPure().getTextureManager().setDefaultIsoFilteringMode(PURE_ISO_LINEAR_MIPMAP_LINEAR, PURE_ISO_LINEAR);
 
         PureObject3D* const arena = getPure().getObject3DManager().createFromFile("gamedata\\models\\arena\\arena.obj");
         arena->SetScaling(0.002f);
@@ -212,7 +212,7 @@ void CustomPGE::onGameInitialized()
         // dealing with lightmaps ...
         if (arena->getCount() == arena_lm->getCount())
         {
-            for (TPureint i = 0; i < arena->getCount(); i++)
+            for (TPureInt i = 0; i < arena->getCount(); i++)
             {
                 PureObject3D* const arenaSub = (PureObject3D*)arena->getAttachedAt(i);
                 // assuming that arena_lm has the same subobjects and vertex count as arena
@@ -221,7 +221,7 @@ void CustomPGE::onGameInitialized()
                 {
                     // copying lightmap data into snail material's 2nd layer
                     arenaSub->getMaterial(false).copyFromMaterial(arenaLMSub->getMaterial(false), 1, 0);
-                    arenaSub->getMaterial(false).setBlendFuncs(Pure_SRC_ALPHA, Pure_ONE_MINUS_SRC_ALPHA, 1);
+                    arenaSub->getMaterial(false).setBlendFuncs(PURE_SRC_ALPHA, PURE_ONE_MINUS_SRC_ALPHA, 1);
                 }
             }
         }
@@ -230,7 +230,7 @@ void CustomPGE::onGameInitialized()
             getConsole().EOLn("arena->getCount() != arenaLMSub->getCount(): %d != %d", arena->getCount(), arena_lm->getCount());
         }
 
-        arena->setVertexTransferMode(Pure_VT_DYN_DIR_SVA_GEN);
+        arena->setVertexTransferMode(PURE_VT_DYN_DIR_SVA_GEN);
 
         delete arena_lm;
     }
@@ -670,8 +670,8 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
             __func__, msg.m_szUserName);
     }
 
-    plane->setVertexModifyingHabit(Pure_VMOD_STATIC);
-    plane->setVertexReferencingMode(Pure_VREF_INDEXED);
+    plane->setVertexModifyingHabit(PURE_VMOD_STATIC);
+    plane->setVertexReferencingMode(PURE_VREF_INDEXED);
 
     m_mapPlayers[msg.m_szUserName].m_pObject3D = plane;
 
