@@ -328,7 +328,6 @@ void CustomPGE::onGameInitialized()
 void CustomPGE::onGameRunning()
 {
     PureWindow& window = getPure().getWindow();
-    const PGEInputHandler& input = PGEInputHandler::createAndGet();
 
     static bool bCameraLocked = true;
 
@@ -336,7 +335,7 @@ void CustomPGE::onGameRunning()
     {
         if (!m_bShowGuiDemo)
         {
-            input.getMouse().SetCursorPos(
+            getInput().getMouse().SetCursorPos(
                 window.getX() + window.getWidth() / 2,
                 window.getY() + window.getHeight() / 2);
         }
@@ -367,12 +366,12 @@ void CustomPGE::onGameRunning()
 
     if (window.isActive())
     {
-        if (input.getKeyboard().isKeyPressed(VK_ESCAPE))
+        if (getInput().getKeyboard().isKeyPressed(VK_ESCAPE))
         {
             window.Close();
         }
 
-        if (input.getKeyboard().isKeyPressed(VK_BACK))
+        if (getInput().getKeyboard().isKeyPressed(VK_BACK))
         {
             if (m_bBackSpaceReleased)
             {
@@ -392,32 +391,32 @@ void CustomPGE::onGameRunning()
             return;
         }
 
-        if (input.getKeyboard().isKeyPressed(VK_UP))
+        if (getInput().getKeyboard().isKeyPressed(VK_UP))
         {
             getPure().getCamera().Move(0.01f);
         }
-        if (input.getKeyboard().isKeyPressed(VK_DOWN))
+        if (getInput().getKeyboard().isKeyPressed(VK_DOWN))
         {
             getPure().getCamera().Move(-0.01f);
         }
-        if (input.getKeyboard().isKeyPressed(VK_LEFT))
+        if (getInput().getKeyboard().isKeyPressed(VK_LEFT))
         {
             getPure().getCamera().Strafe(-0.01f);
         }
-        if (input.getKeyboard().isKeyPressed(VK_RIGHT))
+        if (getInput().getKeyboard().isKeyPressed(VK_RIGHT))
         {
             getPure().getCamera().Strafe(0.01f);
         }
-        if (input.getKeyboard().isKeyPressed(VK_SPACE))
+        if (getInput().getKeyboard().isKeyPressed(VK_SPACE))
         {
             getPure().getCamera().Elevate(0.01f);
         }
-        if (input.getKeyboard().isKeyPressed(VK_CONTROL))
+        if (getInput().getKeyboard().isKeyPressed(VK_CONTROL))
         {
             getPure().getCamera().Elevate(-0.01f);
         }
 
-        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('1')))
+        if (getInput().getKeyboard().isKeyPressed((unsigned char)VkKeyScan('1')))
         {
             if (m_box1 != NULL)
             {
@@ -426,7 +425,7 @@ void CustomPGE::onGameRunning()
             }
         }
 
-        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('2')))
+        if (getInput().getKeyboard().isKeyPressed((unsigned char)VkKeyScan('2')))
         {
             PureObject3D* snailobj = (PureObject3D*)getPure().getObject3DManager().getByFilename("gamedata\\models\\snail_proofps\\snail.obj");
             if (snailobj != NULL)
@@ -436,7 +435,7 @@ void CustomPGE::onGameRunning()
             }
         }
 
-        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('3')))
+        if (getInput().getKeyboard().isKeyPressed((unsigned char)VkKeyScan('3')))
         {
             PureObject3D* arenaobj = (PureObject3D*)getPure().getObject3DManager().getByFilename("gamedata\\models\\arena\\arena.obj");
             if (arenaobj != NULL)
@@ -448,19 +447,19 @@ void CustomPGE::onGameRunning()
 
         elte_fail::HorizontalDirection horDir = elte_fail::HorizontalDirection::NONE;
         elte_fail::VerticalDirection verDir = elte_fail::VerticalDirection::NONE;
-        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('w')))
+        if (getInput().getKeyboard().isKeyPressed((unsigned char)VkKeyScan('w')))
         {
             verDir = elte_fail::VerticalDirection::UP;
         }
-        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('s')))
+        if (getInput().getKeyboard().isKeyPressed((unsigned char)VkKeyScan('s')))
         {
             verDir = elte_fail::VerticalDirection::DOWN;
         }
-        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('a')))
+        if (getInput().getKeyboard().isKeyPressed((unsigned char)VkKeyScan('a')))
         {
             horDir = elte_fail::HorizontalDirection::LEFT;
         }
-        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('d')))
+        if (getInput().getKeyboard().isKeyPressed((unsigned char)VkKeyScan('d')))
         {
             horDir = elte_fail::HorizontalDirection::RIGHT;
         }
@@ -485,7 +484,7 @@ void CustomPGE::onGameRunning()
         }
 
         // L for camera Lock
-        if (input.getKeyboard().isKeyPressed((unsigned char)VkKeyScan('l')))
+        if (getInput().getKeyboard().isKeyPressed((unsigned char)VkKeyScan('l')))
         {
             bCameraLocked = !bCameraLocked;
             Sleep(200);
@@ -509,7 +508,7 @@ void CustomPGE::onGameRunning()
 
     std::stringstream str;
     //str << "MX1: " << changeX << "   MY1: " << changeY;
-    //str << "key: " << input.getKeyboard().isKeyPressed(VK_RETURN);
+    //str << "key: " << getInput().getKeyboard().isKeyPressed(VK_RETURN);
 
     //window.SetCaption(str.str());
 } // onGameRunning()
