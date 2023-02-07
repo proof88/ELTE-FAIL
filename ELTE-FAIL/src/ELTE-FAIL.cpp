@@ -53,7 +53,7 @@ int WINAPI WinMain(const HINSTANCE hInstance, const HINSTANCE hPrevInstance, con
     CustomPGE* const gameEngine = CustomPGE::createAndGetCustomPGEinstance();
     
     // Initializing the game engine.
-    int nResult = gameEngine->initializeGame();
+    int nResult = gameEngine->initializeGame(lpCmdLine);
     
     switch ( nResult )
     {
