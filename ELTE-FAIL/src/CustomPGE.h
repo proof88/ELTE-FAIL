@@ -66,7 +66,6 @@ protected:
     virtual void onGameInitialized() override;   /**< Loading game content here. */
     virtual void onGameRunning() override;       /**< Game logic here. */
     virtual void onPacketReceived(
-        pge_network::PgeNetworkConnectionHandle connHandle,
         const pge_network::PgePacket& pkt) override;  /**< Called when a new network packet is received. */
     virtual void onGameDestroying() override;    /**< Freeing up game content here. */
 

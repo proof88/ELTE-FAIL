@@ -450,8 +450,7 @@ void CustomPGE::onGameRunning()
             {
                 // inject this packet to server's queue
                 // server will properly update its own position and send update to all clients too based on current state of HandleUserCmdMove()
-                // TODO: for sure an inject function would be nice which automatically fills in server username!
-                getNetwork().getServer().getPacketQueue().push_back(pkt);
+                getNetwork().getServer().InjectPacket(pkt);
             }
             else
             {
@@ -494,28 +493,28 @@ void CustomPGE::onGameRunning()
 /**
     Called when a new network packet is received.
 */
-void CustomPGE::onPacketReceived(pge_network::PgeNetworkConnectionHandle m_connHandleServerSide, const pge_network::PgePacket& pkt)
+void CustomPGE::onPacketReceived(const pge_network::PgePacket& pkt)
 {
     switch (pkt.pktId)
     {
     case pge_network::MsgUserConnected::id:
-        HandleUserConnected(m_connHandleServerSide, pkt.msg.userConnected);
+        HandleUserConnected(pkt.m_connHandleServerSide, pkt.msg.userConnected);
         break;
     case pge_network::MsgUserDisconnected::id:
-        HandleUserDisconnected(m_connHandleServerSide, pkt.msg.userDisconnected);
+        HandleUserDisconnected(pkt.m_connHandleServerSide, pkt.msg.userDisconnected);
         break;
     case pge_network::MsgApp::id:
     {
         switch (static_cast<elte_fail::ElteFailMsgId>(pkt.msg.app.msgId))
         {
         case elte_fail::MsgUserSetup::id:
-            HandleUserSetup(m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserSetup&>(pkt.msg.app.cData));
+            HandleUserSetup(pkt.m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserSetup&>(pkt.msg.app.cData));
             break;
         case elte_fail::MsgUserCmdMove::id:
-            HandleUserCmdMove(m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserCmdMove&>(pkt.msg.app.cData));
+            HandleUserCmdMove(pkt.m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserCmdMove&>(pkt.msg.app.cData));
             break;
         case elte_fail::MsgUserUpdate::id:
-            HandleUserUpdate(m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserUpdate&>(pkt.msg.app.cData));
+            HandleUserUpdate(pkt.m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserUpdate&>(pkt.msg.app.cData));
             break;
         default:
             getConsole().EOLn("CustomPGE::%s(): unknown msgId %u in MsgApp!", __func__, pkt.pktId);
@@ -693,7 +692,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, true, szConnectedUserName, sTrollface, msg.szIpAddress);
 
             // server injects this msg to self so resources for player will be allocated
-            getNetwork().getServer().getPacketQueue().push_back(newPktSetup);
+            getNetwork().getServer().InjectPacket(newPktSetup);
         }
         else
         {
@@ -727,7 +726,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, false, szConnectedUserName, sTrollface, msg.szIpAddress);
 
         // server injects this msg to self so resources for player will be allocated
-        getNetwork().getServer().getPacketQueue().push_back(newPktSetup);
+        getNetwork().getServer().InjectPacket(newPktSetup);
 
         // inform all other clients about this new user
         getNetwork().getServer().SendPacketToAllClients(newPktSetup, connHandleServerSide);
@@ -871,7 +870,7 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     getNetwork().getServer().SendPacketToAllClients(pktOut);
     // this msgUserUpdate should be also sent to server as self
     // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for server's packet queue!
-    getNetwork().getServer().getPacketQueue().push_back(pktOut);
+    getNetwork().getServer().InjectPacket(pktOut);
 }
 
 void CustomPGE::HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserUpdate& msg)
