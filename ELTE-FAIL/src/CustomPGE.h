@@ -65,7 +65,7 @@ protected:
     virtual bool onGameInitializing() override;  /**< Must-have minimal stuff before loading anything. */
     virtual bool onGameInitialized() override;   /**< Loading game content here. */
     virtual void onGameRunning() override;       /**< Game logic here. */
-    virtual void onPacketReceived(
+    virtual bool onPacketReceived(
         const pge_network::PgePacket& pkt) override;  /**< Called when a new network packet is received. */
     virtual void onGameDestroying() override;    /**< Freeing up game content here. */
 
@@ -84,9 +84,9 @@ private:
 
     void genUniqueUserName(char szNewUserName[elte_fail::MsgUserSetup::nUserNameMaxLength]) const;
     void WritePlayerList();
-    void HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserSetup& msg);
-    void HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserConnected& msg);
-    void HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserDisconnected& msg);
-    void HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserCmdMove& msg);
-    void HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserUpdate& msg);
+    bool handleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserSetup& msg);
+    bool handleUserConnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserConnected& msg);
+    bool handleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserDisconnected& msg);
+    bool handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserCmdMove& msg);
+    bool handleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserUpdate& msg);
 }; // class CustomPGE

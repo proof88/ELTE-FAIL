@@ -452,7 +452,7 @@ void CustomPGE::onGameRunning()
             if (getNetwork().isServer())
             {
                 // inject this packet to server's queue
-                // server will properly update its own position and send update to all clients too based on current state of HandleUserCmdMove()
+                // server will properly update its own position and send update to all clients too based on current state of handleUserCmdMove()
                 getNetwork().getServer().InjectPacket(pkt);
             }
             else
@@ -495,30 +495,27 @@ void CustomPGE::onGameRunning()
 
 /**
     Called when a new network packet is received.
+
+    @return True on successful packet handling, false on serious error that should result in terminating the application.
 */
-void CustomPGE::onPacketReceived(const pge_network::PgePacket& pkt)
+bool CustomPGE::onPacketReceived(const pge_network::PgePacket& pkt)
 {
     switch (pkt.pktId)
     {
     case pge_network::MsgUserConnected::id:
-        HandleUserConnected(pkt.m_connHandleServerSide, pkt.msg.userConnected);
-        break;
+        return handleUserConnected(pkt.m_connHandleServerSide, pkt.msg.userConnected);
     case pge_network::MsgUserDisconnected::id:
-        HandleUserDisconnected(pkt.m_connHandleServerSide, pkt.msg.userDisconnected);
-        break;
+        return handleUserDisconnected(pkt.m_connHandleServerSide, pkt.msg.userDisconnected);
     case pge_network::MsgApp::id:
     {
         switch (static_cast<elte_fail::ElteFailMsgId>(pkt.msg.app.msgId))
         {
         case elte_fail::MsgUserSetup::id:
-            HandleUserSetup(pkt.m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserSetup&>(pkt.msg.app.cData));
-            break;
+            return handleUserSetup(pkt.m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserSetup&>(pkt.msg.app.cData));
         case elte_fail::MsgUserCmdMove::id:
-            HandleUserCmdMove(pkt.m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserCmdMove&>(pkt.msg.app.cData));
-            break;
+            return handleUserCmdMove(pkt.m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserCmdMove&>(pkt.msg.app.cData));
         case elte_fail::MsgUserUpdate::id:
-            HandleUserUpdate(pkt.m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserUpdate&>(pkt.msg.app.cData));
-            break;
+            return handleUserUpdate(pkt.m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserUpdate&>(pkt.msg.app.cData));
         default:
             getConsole().EOLn("CustomPGE::%s(): unknown msgId %u in MsgApp!", __func__, pkt.pktId);
         }
@@ -527,6 +524,7 @@ void CustomPGE::onPacketReceived(const pge_network::PgePacket& pkt)
     default:
         getConsole().EOLn("CustomPGE::%s(): unknown pktId %u!", __func__, pkt.pktId);
     }
+    return false;
 }
 
 
@@ -579,14 +577,14 @@ void CustomPGE::WritePlayerList()
     getConsole().OO();
 }
 
-void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserSetup& msg)
+bool CustomPGE::handleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserSetup& msg)
 {
     if ((strnlen(msg.m_szUserName, elte_fail::MsgUserSetup::nUserNameMaxLength) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(msg.m_szUserName)))
     {
         getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s (connHandleServerSide: %u) is already present in players list!",
             __func__, msg.m_szUserName, connHandleServerSide);
         assert(false);
-        return;
+        return false;
     }
 
     if (msg.m_bCurrentClient)
@@ -621,8 +619,7 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
     if (!plane)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to create object for user %s!", __func__, msg.m_szUserName);
-        // TODO: should exit or sg
-        return;
+        return false;
     }
 
     plane->SetDoubleSided(true);
@@ -655,15 +652,17 @@ void CustomPGE::HandleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
 
     getNetwork().WriteList();
     WritePlayerList();
+
+    return true;
 }
 
-void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserConnected& msg)
+bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserConnected& msg)
 {
     if (!getNetwork().isServer())
     {
         getConsole().EOLn("CustomPGE::%s(): client received MsgUserConnected, CANNOT HAPPEN!", __func__);
         assert(false);
-        return;
+        return false;
     }
 
     const char* szConnectedUserName = nullptr;
@@ -703,7 +702,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             getConsole().EOLn("CustomPGE::%s(): user (connHandleServerSide: %u) connected with bCurrentClient as true but it is not me, CANNOT HAPPEN!", 
                __func__, connHandleServerSide);
             assert(false);
-            return;
+            return false;
         }
     }
     else
@@ -716,7 +715,7 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             getConsole().EOLn("CustomPGE::%s(): non-server user (connHandleServerSide: %u) connected but map of players is still empty, CANNOT HAPPEN!",
                 __func__, connHandleServerSide);
             assert(false);
-            return;
+            return false;
         }
 
         char szNewUserName[elte_fail::MsgUserSetup::nUserNameMaxLength];
@@ -759,9 +758,11 @@ void CustomPGE::HandleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             getNetwork().getServer().SendPacketToClient(connHandleServerSide, newPktUserUpdate);
         }
     }
+
+    return true;
 }
 
-void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserDisconnected&)
+bool CustomPGE::handleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserDisconnected&)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
@@ -776,7 +777,7 @@ void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle c
     if (m_mapPlayers.end() == it)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to find user with connHandleServerSide: %u!", __func__, connHandleServerSide);
-        return;
+        return false;
     }
 
     const std::string& sClientUserName = it->first;
@@ -800,15 +801,17 @@ void CustomPGE::HandleUserDisconnected(pge_network::PgeNetworkConnectionHandle c
 
     getNetwork().WriteList();
     WritePlayerList();
+
+    return true;
 }
 
-void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserCmdMove& pktUserCmdMove)
+bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserCmdMove& pktUserCmdMove)
 {
     if (!getNetwork().isServer())
     {
         getConsole().EOLn("CustomPGE::%s(): client received MsgUserCmdMove, CANNOT HAPPEN!", __func__);
         assert(false);
-        return;
+        return false;
     }
 
     auto it = m_mapPlayers.begin();
@@ -824,7 +827,7 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     if (m_mapPlayers.end() == it)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to find user with connHandleServerSide: %u!", __func__, connHandleServerSide);
-        return;
+        return false;
     }
 
     const std::string& sClientUserName = it->first;
@@ -833,14 +836,14 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     if (!obj)
     {
         getConsole().EOLn("CustomPGE::%s(): user %s doesn't have associated Object3D!", __func__, sClientUserName.c_str());
-        return;
+        return false;
     }
 
     if ((pktUserCmdMove.m_dirHorizontal == elte_fail::HorizontalDirection::NONE) &&
         (pktUserCmdMove.m_dirVertical == elte_fail::VerticalDirection::NONE))
     {
         getConsole().EOLn("CustomPGE::%s(): user %s sent invalid cmdMove!", __func__, sClientUserName.c_str());
-        return;
+        return false;
     }
 
     //getConsole().OLn("CustomPGE::%s(): user %s sent valid cmdMove", __func__, sClientUserName.c_str());
@@ -874,9 +877,11 @@ void CustomPGE::HandleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     // this msgUserUpdate should be also sent to server as self
     // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for server's packet queue!
     getNetwork().getServer().InjectPacket(pktOut);
+
+    return true;
 }
 
-void CustomPGE::HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserUpdate& msg)
+bool CustomPGE::handleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserUpdate& msg)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
@@ -891,17 +896,19 @@ void CustomPGE::HandleUserUpdate(pge_network::PgeNetworkConnectionHandle connHan
     if (m_mapPlayers.end() == it)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to find user with connHandleServerSide: %u!", __func__, connHandleServerSide);
-        return;
+        return false;
     }
 
     PureObject3D* obj = it->second.m_pObject3D;
     if (!obj)
     {
         getConsole().EOLn("CustomPGE::%s(): user %s doesn't have associated Object3D!", __func__, it->first.c_str());
-        return;
+        return false;
     }
 
     obj->getPosVec().SetX(msg.m_pos.x);
     obj->getPosVec().SetY(msg.m_pos.y);
+
+    return true;
 }
 
