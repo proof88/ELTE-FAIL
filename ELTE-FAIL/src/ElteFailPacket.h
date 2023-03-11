@@ -9,8 +9,6 @@
     ###################################################################################
 */
 
-#include <cassert>
-
 #include "../../../PGE/PGE/Network/PgePacket.h"
 
 namespace elte_fail
@@ -52,7 +50,7 @@ namespace elte_fail
             const std::string& sTrollFaceTex,
             const std::string& sIpAddress)
         {
-            assert(sizeof(MsgUserSetup) <= pge_network::MsgApp::nMessageMaxLength);
+            static_assert(sizeof(MsgUserSetup) <= pge_network::MsgApp::nMessageMaxLength, "msg size");
             memset(&pkt, 0, sizeof(pkt));
             pkt.m_connHandleServerSide = connHandleServerSide;
             pkt.pktId = pge_network::PgePktId::APP;
@@ -84,7 +82,7 @@ namespace elte_fail
             const HorizontalDirection& dirHorizontal,
             const VerticalDirection& dirVertical)
         {
-            assert(sizeof(MsgUserCmdMove) <= pge_network::MsgApp::nMessageMaxLength);
+            static_assert(sizeof(MsgUserCmdMove) <= pge_network::MsgApp::nMessageMaxLength, "msg size");
             memset(&pkt, 0, sizeof(pkt));
             // m_connHandleServerSide is ignored in this message
             //pkt.m_connHandleServerSide = connHandleServerSide;
@@ -114,7 +112,7 @@ namespace elte_fail
             const TPureFloat y, 
             const TPureFloat z)
         {
-            assert(sizeof(MsgUserUpdate) <= pge_network::MsgApp::nMessageMaxLength);
+            static_assert(sizeof(MsgUserUpdate) <= pge_network::MsgApp::nMessageMaxLength, "msg size");
             memset(&pkt, 0, sizeof(pkt));
             pkt.m_connHandleServerSide = connHandleServerSide;
             pkt.pktId = pge_network::PgePktId::APP;
