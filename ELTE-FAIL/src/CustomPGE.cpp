@@ -777,7 +777,8 @@ bool CustomPGE::handleUserDisconnected(pge_network::PgeNetworkConnectionHandle c
     if (m_mapPlayers.end() == it)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to find user with connHandleServerSide: %u!", __func__, connHandleServerSide);
-        return false;
+        assert(false); // in debug mode, try to understand this scenario
+        return true; // in release mode, dont terminate
     }
 
     const std::string& sClientUserName = it->first;
@@ -827,7 +828,8 @@ bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     if (m_mapPlayers.end() == it)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to find user with connHandleServerSide: %u!", __func__, connHandleServerSide);
-        return false;
+        assert(false);  // in debug mode this terminates server
+        return true;    // in release mode, we dont terminate the server, just silently ignore
     }
 
     const std::string& sClientUserName = it->first;
@@ -843,7 +845,9 @@ bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
         (pktUserCmdMove.m_dirVertical == elte_fail::VerticalDirection::NONE))
     {
         getConsole().EOLn("CustomPGE::%s(): user %s sent invalid cmdMove!", __func__, sClientUserName.c_str());
-        return false;
+        assert(false);  // in debug mode this terminates server
+        return false;   // in release mode, we dont terminate the server, just silently ignore
+        // TODO: I might disconnect this client!
     }
 
     //getConsole().OLn("CustomPGE::%s(): user %s sent valid cmdMove", __func__, sClientUserName.c_str());
@@ -896,7 +900,7 @@ bool CustomPGE::handleUserUpdate(pge_network::PgeNetworkConnectionHandle connHan
     if (m_mapPlayers.end() == it)
     {
         getConsole().EOLn("CustomPGE::%s(): failed to find user with connHandleServerSide: %u!", __func__, connHandleServerSide);
-        return false;
+        return true;  // might NOT be fatal error in some circumstances, although I cannot think about any, but dont terminate the app for this ...
     }
 
     PureObject3D* obj = it->second.m_pObject3D;
