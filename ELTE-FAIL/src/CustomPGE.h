@@ -62,8 +62,8 @@ protected:
     explicit CustomPGE(const char* gametitle);  /**< This is the only usable ctor, this is used by the static createAndGet(). */
     virtual ~CustomPGE();
 
-    virtual void onGameInitializing() override;  /**< Must-have minimal stuff before loading anything. */
-    virtual void onGameInitialized() override;   /**< Loading game content here. */
+    virtual bool onGameInitializing() override;  /**< Must-have minimal stuff before loading anything. */
+    virtual bool onGameInitialized() override;   /**< Loading game content here. */
     virtual void onGameRunning() override;       /**< Game logic here. */
     virtual void onPacketReceived(
         const pge_network::PgePacket& pkt) override;  /**< Called when a new network packet is received. */

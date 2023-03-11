@@ -73,7 +73,7 @@ const char* CustomPGE::getLoggerModuleName()
     Must-have minimal stuff before loading anything.
     Game engine calls this before even finishing its own initialization.
 */
-void CustomPGE::onGameInitializing()
+bool CustomPGE::onGameInitializing()
 {
     // Earliest we can enable our own logging
     getConsole().Initialize("ELTE-FAIL log", true);
@@ -100,13 +100,15 @@ void CustomPGE::onGameInitializing()
 
     // we need PGE::runGame() invoke EVERYTHING even when window is NOT active, and we will decide in onGameRunning() what NOT to do if window is inactive
     SetInactiveLikeActive(true);
+
+    return true;
 }
 
 
 /** 
     Loading game content here.
 */
-void CustomPGE::onGameInitialized()
+bool CustomPGE::onGameInitialized()
 {
     getConsole().OLnOI("CustomPGE::onGameInitialized()");
 
@@ -294,6 +296,7 @@ void CustomPGE::onGameInitialized()
         }
     }
 
+    return true;
 } // onGameInitialized()
 
 
