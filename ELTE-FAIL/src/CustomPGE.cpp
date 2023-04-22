@@ -261,15 +261,7 @@ bool CustomPGE::onGameInitialized()
 
     if (getNetwork().isServer())
     {
-        // MsgUserSetup is also processed by server, but it injects this pkt into its own queue when needed.
-        // MsgUserSetup MUST NOT be received by server over network!
-        // MsgUserSetup is received only by clients over network!
-        getNetwork().getServer().getAllowListedAppMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserSetup::id));
-
-        // MsgUserUpdate is also processed by server, but it injects this pkt into its own queue when needed.
-        // MsgUserUpdate MUST NOT be received by server over network!
-        // MsgUserUpdate is received only by clients over network!
-        getNetwork().getServer().getAllowListedAppMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserUpdate::id));
+        getNetwork().getClient().getAllowListedAppMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserCmdMove::id));
 
         if (!getNetwork().getServer().startListening())
         {
@@ -279,7 +271,15 @@ bool CustomPGE::onGameInitialized()
     }
     else
     {
-        getNetwork().getClient().getAllowListedAppMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserCmdMove::id));
+        // MsgUserSetup is also processed by server, but it injects this pkt into its own queue when needed.
+        // MsgUserSetup MUST NOT be received by server over network!
+        // MsgUserSetup is received only by clients over network!
+        getNetwork().getServer().getAllowListedAppMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserSetup::id));
+
+        // MsgUserUpdate is also processed by server, but it injects this pkt into its own queue when needed.
+        // MsgUserUpdate MUST NOT be received by server over network!
+        // MsgUserUpdate is received only by clients over network!
+        getNetwork().getServer().getAllowListedAppMessages().insert(static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserUpdate::id));
 
         std::string sIp = "127.0.0.1";
         if (!getConfigProfiles().getVars()[CVAR_CL_SERVER_IP].getAsString().empty())
