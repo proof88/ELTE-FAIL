@@ -87,7 +87,7 @@ bool CustomPGE::onGameInitializing()
     getConsole().SetLoggingState(getLoggerModuleName(), true);
 
     // Network logs
-    getConsole().SetLoggingState("PGESysNET", true);
+    getConsole().SetLoggingState("PgeGsnWrapper", true);
     getConsole().SetLoggingState(getNetwork().getLoggerModuleName(), true);
     getConsole().SetLoggingState(getNetwork().getServer().getLoggerModuleName(), true);
     getConsole().SetLoggingState(getNetwork().getClient().getLoggerModuleName(), true);
@@ -675,7 +675,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
     }
     else
     {
-        CConsole::getConsoleInstance("PGESysNET").EOLn("%s: SERVER No more trollfaces left for user with connHandle %u", __func__, connHandleServerSide);
+        CConsole::getConsoleInstance("PgeGsnWrapper").EOLn("%s: SERVER No more trollfaces left for user with connHandle %u", __func__, connHandleServerSide);
     }
 
     if (msg.bCurrentClient)
