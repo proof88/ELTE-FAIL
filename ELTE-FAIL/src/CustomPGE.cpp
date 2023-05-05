@@ -448,18 +448,9 @@ void CustomPGE::onGameRunning()
         {
             pge_network::PgePacket pkt;
             elte_fail::MsgUserCmdMove::initPkt(pkt, horDir, verDir);
-
-            if (getNetwork().isServer())
-            {
-                // inject this packet to server's queue
-                // server will properly update its own position and send update to all clients too based on current state of handleUserCmdMove()
-                getNetwork().getServer().InjectPacket(pkt);
-            }
-            else
-            {
-                // here username is not needed since this is sent by client, and server will identify the client anyway based on connection id
-                getNetwork().getClient().SendToServer(pkt);
-            }
+            // instead of using SendToServer() of getClient() or getServer() instances, we use the SendToServer() of
+            // their common interface which always points to the initialized instance, which is either client or server.
+            getNetwork().getServerClientInstance()->SendToServer(pkt);
         }
 
         // L for camera Lock
@@ -694,7 +685,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, true, szConnectedUserName, sTrollface, msg.szIpAddress);
 
             // server injects this msg to self so resources for player will be allocated
-            getNetwork().getServer().InjectPacket(newPktSetup);
+            getNetwork().getServer().SendToServer(newPktSetup);
         }
         else
         {
@@ -728,7 +719,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, false, szConnectedUserName, sTrollface, msg.szIpAddress);
 
         // server injects this msg to self so resources for player will be allocated
-        getNetwork().getServer().InjectPacket(newPktSetup);
+        getNetwork().getServer().SendToServer(newPktSetup);
 
         // inform all other clients about this new user
         getNetwork().getServer().SendPacketToAllClients(newPktSetup, connHandleServerSide);
@@ -880,7 +871,7 @@ bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     getNetwork().getServer().SendPacketToAllClients(pktOut);
     // this msgUserUpdate should be also sent to server as self
     // maybe the SendPacketToAllClients() should be enhanced to contain packet injection for server's packet queue!
-    getNetwork().getServer().InjectPacket(pktOut);
+    getNetwork().getServer().SendToServer(pktOut);
 
     return true;
 }
