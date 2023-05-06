@@ -722,7 +722,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         getNetwork().getServer().send(newPktSetup);
 
         // inform all other clients about this new user
-        getNetwork().getServer().sendToAllClients(newPktSetup, connHandleServerSide);
+        getNetwork().getServer().sendToAllClientsExcept(newPktSetup, connHandleServerSide);
 
         // now we send this msg to the client with this bool flag set so client will know it is their connect
         elte_fail::MsgUserSetup& msgUserSetup = reinterpret_cast<elte_fail::MsgUserSetup&>(newPktSetup.msg.app.cData);
@@ -868,9 +868,9 @@ bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
 
     pge_network::PgePacket pktOut;
     elte_fail::MsgUserUpdate::initPkt(pktOut, connHandleServerSide, obj->getPosVec().getX(), obj->getPosVec().getY(), obj->getPosVec().getZ());
-    getNetwork().getServer().sendToAllClients(pktOut);
+    getNetwork().getServer().sendToAllClientsExcept(pktOut);
     // this msgUserUpdate should be also sent to server as self
-    // maybe the sendToAllClients() should be enhanced to contain packet injection for server's packet queue!
+    // maybe the sendToAllClientsExcept() should be enhanced to contain packet injection for server's packet queue!
     getNetwork().getServer().send(pktOut);
 
     return true;
