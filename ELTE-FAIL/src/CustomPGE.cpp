@@ -868,10 +868,7 @@ bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
 
     pge_network::PgePacket pktOut;
     elte_fail::MsgUserUpdate::initPkt(pktOut, connHandleServerSide, obj->getPosVec().getX(), obj->getPosVec().getY(), obj->getPosVec().getZ());
-    getNetwork().getServer().sendToAllClientsExcept(pktOut);
-    // this msgUserUpdate should be also sent to server as self
-    // maybe the sendToAllClientsExcept() should be enhanced to contain packet injection for server's packet queue!
-    getNetwork().getServer().send(pktOut);
+    getNetwork().getServer().sendToAll(pktOut);
 
     return true;
 }
