@@ -450,7 +450,7 @@ void CustomPGE::onGameRunning()
             elte_fail::MsgUserCmdMove::initPkt(pkt, horDir, verDir);
             // instead of using sendToServer() of getClient() or getServer() instances, we use the sendToServer() of
             // their common interface which always points to the initialized instance, which is either client or server.
-            getNetwork().getServerClientInstance()->sendTo(pkt);
+            getNetwork().getServerClientInstance()->send(pkt);
         }
 
         // L for camera Lock
@@ -685,7 +685,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, true, szConnectedUserName, sTrollface, msg.szIpAddress);
 
             // server injects this msg to self so resources for player will be allocated
-            getNetwork().getServer().sendTo(newPktSetup);
+            getNetwork().getServer().send(newPktSetup);
         }
         else
         {
@@ -719,7 +719,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, false, szConnectedUserName, sTrollface, msg.szIpAddress);
 
         // server injects this msg to self so resources for player will be allocated
-        getNetwork().getServer().sendTo(newPktSetup);
+        getNetwork().getServer().send(newPktSetup);
 
         // inform all other clients about this new user
         getNetwork().getServer().sendToAllClients(newPktSetup, connHandleServerSide);
@@ -727,7 +727,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         // now we send this msg to the client with this bool flag set so client will know it is their connect
         elte_fail::MsgUserSetup& msgUserSetup = reinterpret_cast<elte_fail::MsgUserSetup&>(newPktSetup.msg.app.cData);
         msgUserSetup.m_bCurrentClient = true;
-        getNetwork().getServer().sendTo(newPktSetup, connHandleServerSide);
+        getNetwork().getServer().send(newPktSetup, connHandleServerSide);
 
         // we also send as many MsgUserSetup pkts to the client as the number of already connected players,
         // otherwise client won't know about them, so this way the client will detect them as newly connected users;
@@ -740,13 +740,13 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
                 it.second.m_connHandleServerSide,
                 false,
                 it.first, it.second.m_sTrollface, it.second.m_sIpAddress);
-            getNetwork().getServer().sendTo(newPktSetup, connHandleServerSide);
+            getNetwork().getServer().send(newPktSetup, connHandleServerSide);
             
             elte_fail::MsgUserUpdate::initPkt(
                 newPktUserUpdate,
                 it.second.m_connHandleServerSide,
                 it.second.m_pObject3D->getPosVec().getX(), it.second.m_pObject3D->getPosVec().getY(), it.second.m_pObject3D->getPosVec().getZ());
-            getNetwork().getServer().sendTo(newPktUserUpdate, connHandleServerSide);
+            getNetwork().getServer().send(newPktUserUpdate, connHandleServerSide);
         }
     }
 
@@ -871,7 +871,7 @@ bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     getNetwork().getServer().sendToAllClients(pktOut);
     // this msgUserUpdate should be also sent to server as self
     // maybe the sendToAllClients() should be enhanced to contain packet injection for server's packet queue!
-    getNetwork().getServer().sendTo(pktOut);
+    getNetwork().getServer().send(pktOut);
 
     return true;
 }
