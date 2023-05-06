@@ -450,7 +450,7 @@ void CustomPGE::onGameRunning()
             elte_fail::MsgUserCmdMove::initPkt(pkt, horDir, verDir);
             // instead of using sendToServer() of getClient() or getServer() instances, we use the sendToServer() of
             // their common interface which always points to the initialized instance, which is either client or server.
-            getNetwork().getServerClientInstance()->sendTo(pkt, 0);
+            getNetwork().getServerClientInstance()->sendTo(pkt);
         }
 
         // L for camera Lock
@@ -685,7 +685,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, true, szConnectedUserName, sTrollface, msg.szIpAddress);
 
             // server injects this msg to self so resources for player will be allocated
-            getNetwork().getServer().sendTo(newPktSetup, 0);
+            getNetwork().getServer().sendTo(newPktSetup);
         }
         else
         {
@@ -719,7 +719,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, false, szConnectedUserName, sTrollface, msg.szIpAddress);
 
         // server injects this msg to self so resources for player will be allocated
-        getNetwork().getServer().sendTo(newPktSetup, 0);
+        getNetwork().getServer().sendTo(newPktSetup);
 
         // inform all other clients about this new user
         getNetwork().getServer().sendToAllClients(newPktSetup, connHandleServerSide);
@@ -871,7 +871,7 @@ bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     getNetwork().getServer().sendToAllClients(pktOut);
     // this msgUserUpdate should be also sent to server as self
     // maybe the sendToAllClients() should be enhanced to contain packet injection for server's packet queue!
-    getNetwork().getServer().sendTo(pktOut, 0);
+    getNetwork().getServer().sendTo(pktOut);
 
     return true;
 }
