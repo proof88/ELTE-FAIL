@@ -354,9 +354,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\CConsole\CConsole\src\CConsole.h" />
+    <ClInclude Include="..\..\Console\CConsole\src\CConsole.h" />
     <ClInclude Include="..\..\PFL\PFL\PFL.h" />
     <ClInclude Include="..\..\PGE\PGE\Config\PGEcfgFile.h" />
+    <ClInclude Include="..\..\PGE\PGE\Config\PGEcfgProfiles.h" />
     <ClInclude Include="..\..\PGE\PGE\Config\PGEcfgVariable.h" />
     <ClInclude Include="..\..\PGE\PGE\Network\PgeClient.h" />
     <ClInclude Include="..\..\PGE\PGE\Network\PgeIServerClient.h" />

@@ -72,9 +72,6 @@
     <ClInclude Include="..\..\PGE\PGE\PGEWorldWeather.h">
       <Filter>Header Files\PGE</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\CConsole\CConsole\src\CConsole.h">
-      <Filter>Header Files\CConsole</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\PFL\PFL\PFL.h">
       <Filter>Header Files\PFL</Filter>
     </ClInclude>
@@ -197,6 +194,12 @@
     </ClInclude>
     <ClInclude Include="..\..\PGE\PGE\Network\PgeIServerClient.h">
       <Filter>Header Files\PGE\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Console\CConsole\src\CConsole.h">
+      <Filter>Header Files\CConsole</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\PGE\PGE\Config\PGEcfgProfiles.h">
+      <Filter>Header Files\PGE\Config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
