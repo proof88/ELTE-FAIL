@@ -17,7 +17,7 @@
 #include "../../../PGE/PGE/Pure/include/external/PureUiManager.h"
 #include "../../../PGE/PGE/Pure/include/external/Display/PureWindow.h"
 #include "../../../PGE/PGE/Pure/include/external/PureCamera.h"
-#include "../../../CConsole/CConsole/src/CConsole.h"
+#include "../../../Console/CConsole/src/CConsole.h"
 
 
 static constexpr char* CVAR_CL_SERVER_IP = "cl_server_ip";
@@ -87,7 +87,7 @@ bool CustomPGE::onGameInitializing()
     getConsole().SetLoggingState(getLoggerModuleName(), true);
 
     // Network logs
-    getConsole().SetLoggingState("PgeGsnWrapper", true);
+    getConsole().SetLoggingState("PgeGnsWrapper", true);
     getConsole().SetLoggingState(getNetwork().getLoggerModuleName(), true);
     getConsole().SetLoggingState(getNetwork().getServer().getLoggerModuleName(), true);
     getConsole().SetLoggingState(getNetwork().getClient().getLoggerModuleName(), true);
@@ -258,6 +258,15 @@ bool CustomPGE::onGameInitialized()
     getConsole().OLn("");
 
     getPure().WriteList();
+
+    // We tell the names of our app messages to the network engine so it can properly log message stats with message names
+    for (const auto& msgAppId2StringPair : elte_fail::MapMsgAppId2String)
+    {
+        getNetwork().getServerClientInstance()->getMsgAppId2StringMap().insert(
+            { static_cast<pge_network::TPgeMsgAppMsgId>(msgAppId2StringPair.msgId),
+              std::string(msgAppId2StringPair.zstring) }
+        );
+    }
 
     if (getNetwork().isServer())
     {
@@ -447,7 +456,8 @@ void CustomPGE::onGameRunning()
         if ((horDir != elte_fail::HorizontalDirection::NONE) || (verDir != elte_fail::VerticalDirection::NONE))
         {
             pge_network::PgePacket pkt;
-            elte_fail::MsgUserCmdMove::initPkt(pkt, horDir, verDir);
+            const bool bInitPkt = elte_fail::MsgUserCmdMove::initPkt(pkt, horDir, verDir);
+            assert(bInitPkt);
             // instead of using sendToServer() of getClient() or getServer() instances, we use the sendToServer() of
             // their common interface which always points to the initialized instance, which is either client or server.
             getNetwork().getServerClientInstance()->send(pkt);
@@ -491,29 +501,41 @@ void CustomPGE::onGameRunning()
 */
 bool CustomPGE::onPacketReceived(const pge_network::PgePacket& pkt)
 {
-    switch (pkt.pktId)
+    switch (pge_network::PgePacket::getPacketId(pkt))
     {
-    case pge_network::MsgUserConnected::id:
-        return handleUserConnected(pkt.m_connHandleServerSide, pkt.msg.userConnected);
-    case pge_network::MsgUserDisconnected::id:
-        return handleUserDisconnected(pkt.m_connHandleServerSide, pkt.msg.userDisconnected);
+    case pge_network::MsgUserConnectedServerSelf::id:
+        return handleUserConnected(pge_network::PgePacket::getServerSideConnectionHandle(pkt), pge_network::PgePacket::getMessageAsUserConnected(pkt));
+    case pge_network::MsgUserDisconnectedFromServer::id:
+        return handleUserDisconnected(pge_network::PgePacket::getServerSideConnectionHandle(pkt), pge_network::PgePacket::getMessageAsUserDisconnected(pkt));
     case pge_network::MsgApp::id:
     {
-        switch (static_cast<elte_fail::ElteFailMsgId>(pkt.msg.app.msgId))
+        // TODO: here we will need to iterate over all app msg but for now there is only 1 inside!
+        assert(pge_network::PgePacket::getMessageAppArea(pkt).m_nMessageCount == 1);
+        const pge_network::MsgApp* const pMsgApp = reinterpret_cast<const pge_network::MsgApp*>(pge_network::PgePacket::getMessageAppArea(pkt).cData);
+        assert(pMsgApp);
+        assert(pMsgApp->nMsgSize > 0);  // for now we dont have empty messages
+
+        switch (static_cast<elte_fail::ElteFailMsgId>(pMsgApp->msgId))
         {
         case elte_fail::MsgUserSetup::id:
-            return handleUserSetup(pkt.m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserSetup&>(pkt.msg.app.cData));
+            return handleUserSetup(
+                pge_network::PgePacket::getServerSideConnectionHandle(pkt),
+                reinterpret_cast<const elte_fail::MsgUserSetup&>(pMsgApp->cMsgData));
         case elte_fail::MsgUserCmdMove::id:
-            return handleUserCmdMove(pkt.m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserCmdMove&>(pkt.msg.app.cData));
+            return handleUserCmdMove(
+                pge_network::PgePacket::getServerSideConnectionHandle(pkt),
+                reinterpret_cast<const elte_fail::MsgUserCmdMove&>(pMsgApp->cMsgData));
         case elte_fail::MsgUserUpdate::id:
-            return handleUserUpdate(pkt.m_connHandleServerSide, reinterpret_cast<const elte_fail::MsgUserUpdate&>(pkt.msg.app.cData));
+            return handleUserUpdate(
+                pge_network::PgePacket::getServerSideConnectionHandle(pkt),
+                reinterpret_cast<const elte_fail::MsgUserUpdate&>(pMsgApp->cMsgData));
         default:
-            getConsole().EOLn("CustomPGE::%s(): unknown msgId %u in MsgApp!", __func__, pkt.pktId);
+            getConsole().EOLn("CustomPGE::%s(): unknown msgId %u in MsgAppArea!", __func__, pMsgApp->msgId);
         }
         break;
     }
     default:
-        getConsole().EOLn("CustomPGE::%s(): unknown pktId %u!", __func__, pkt.pktId);
+        getConsole().EOLn("CustomPGE::%s(): unknown pktId %u!", __func__, pge_network::PgePacket::getPacketId(pkt));
     }
     return false;
 }
@@ -647,11 +669,11 @@ bool CustomPGE::handleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
     return true;
 }
 
-bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserConnected& msg)
+bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserConnectedServerSelf& msg)
 {
     if (!getNetwork().isServer())
     {
-        getConsole().EOLn("CustomPGE::%s(): client received MsgUserConnected, CANNOT HAPPEN!", __func__);
+        getConsole().EOLn("CustomPGE::%s(): client received MsgUserConnectedServerSelf, CANNOT HAPPEN!", __func__);
         assert(false);
         return false;
     }
@@ -666,7 +688,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
     }
     else
     {
-        CConsole::getConsoleInstance("PgeGsnWrapper").EOLn("%s: SERVER No more trollfaces left for user with connHandle %u", __func__, connHandleServerSide);
+        CConsole::getConsoleInstance("PgeGnsWrapper").EOLn("%s: SERVER No more trollfaces left for user with connHandle %u", __func__, connHandleServerSide);
     }
 
     if (msg.bCurrentClient)
@@ -682,7 +704,8 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             szConnectedUserName = szNewUserName;
 
             pge_network::PgePacket newPktSetup;
-            elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, true, szConnectedUserName, sTrollface, msg.szIpAddress);
+            const bool bInitPkt = elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, true, szConnectedUserName, sTrollface, msg.szIpAddress);
+            assert(bInitPkt);
 
             // server injects this msg to self so resources for player will be allocated
             getNetwork().getServer().send(newPktSetup);
@@ -716,7 +739,8 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             __func__, szConnectedUserName, connHandleServerSide, msg.szIpAddress);
 
         pge_network::PgePacket newPktSetup;
-        elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, false, szConnectedUserName, sTrollface, msg.szIpAddress);
+        bool bInitPkt = elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, false, szConnectedUserName, sTrollface, msg.szIpAddress);
+        assert(bInitPkt);
 
         // server injects this msg to self so resources for player will be allocated
         getNetwork().getServer().send(newPktSetup);
@@ -725,7 +749,9 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         getNetwork().getServer().sendToAllClientsExcept(newPktSetup, connHandleServerSide);
 
         // now we send this msg to the client with this bool flag set so client will know it is their connect
-        elte_fail::MsgUserSetup& msgUserSetup = reinterpret_cast<elte_fail::MsgUserSetup&>(newPktSetup.msg.app.cData);
+        // TODO: this is not that nice, app should never access custom app message within the pkt this way!
+        pge_network::MsgApp* const pMsgApp = reinterpret_cast<pge_network::MsgApp*>(pge_network::PgePacket::getMessageAppArea(newPktSetup).cData);
+        elte_fail::MsgUserSetup& msgUserSetup = reinterpret_cast<elte_fail::MsgUserSetup&>(pMsgApp->cMsgData);
         msgUserSetup.m_bCurrentClient = true;
         getNetwork().getServer().send(newPktSetup, connHandleServerSide);
 
@@ -735,17 +761,19 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         pge_network::PgePacket newPktUserUpdate;
         for (const auto& it : m_mapPlayers)
         {
-            elte_fail::MsgUserSetup::initPkt(
+            bInitPkt = elte_fail::MsgUserSetup::initPkt(
                 newPktSetup,
                 it.second.m_connHandleServerSide,
                 false,
                 it.first, it.second.m_sTrollface, it.second.m_sIpAddress);
+            assert(bInitPkt);
             getNetwork().getServer().send(newPktSetup, connHandleServerSide);
             
-            elte_fail::MsgUserUpdate::initPkt(
+            bInitPkt = elte_fail::MsgUserUpdate::initPkt(
                 newPktUserUpdate,
                 it.second.m_connHandleServerSide,
                 it.second.m_pObject3D->getPosVec().getX(), it.second.m_pObject3D->getPosVec().getY(), it.second.m_pObject3D->getPosVec().getZ());
+            assert(bInitPkt);
             getNetwork().getServer().send(newPktUserUpdate, connHandleServerSide);
         }
     }
@@ -753,7 +781,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
     return true;
 }
 
-bool CustomPGE::handleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserDisconnected&)
+bool CustomPGE::handleUserDisconnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserDisconnectedFromServer&)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
@@ -867,7 +895,8 @@ bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     }
 
     pge_network::PgePacket pktOut;
-    elte_fail::MsgUserUpdate::initPkt(pktOut, connHandleServerSide, obj->getPosVec().getX(), obj->getPosVec().getY(), obj->getPosVec().getZ());
+    const bool bInitPkt = elte_fail::MsgUserUpdate::initPkt(pktOut, connHandleServerSide, obj->getPosVec().getX(), obj->getPosVec().getY(), obj->getPosVec().getZ());
+    assert(bInitPkt);
     getNetwork().getServer().sendToAll(pktOut);
 
     return true;

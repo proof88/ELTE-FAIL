@@ -11,29 +11,32 @@
 
 #include "../../../PGE/PGE/Network/PgePacket.h"
 
+#include <array>
+
 namespace elte_fail
 {
 
-    enum class ElteFailMsgId : pge_network::TPgeMsgAppMsgId  /* underlying type should be same as type of MsgApp::msgId */
+    enum class ElteFailMsgId : pge_network::TPgeMsgAppMsgId  /* underlying type should be same as type of MsgAppArea::msgId */
     {
         USER_SETUP = 0,
         USER_CMD_MOVE,
-        USER_UPDATE
+        USER_UPDATE,
+        LastMsgId
     };
 
-    enum class VerticalDirection : std::uint8_t
+    struct ElteFailMsgId2ZStringPair
     {
-        NONE = 0,
-        UP,
-        DOWN
+        ElteFailMsgId msgId;
+        const char* const zstring;
     };
 
-    enum class HorizontalDirection : std::uint8_t
-    {
-        NONE = 0,
-        LEFT,
-        RIGHT
-    };
+    // this way of defining std::array makes sure code cannot compile if we forget to align the array after changing ElteFailMsgId
+    constexpr std::array<ElteFailMsgId2ZStringPair, static_cast<size_t>(ElteFailMsgId::LastMsgId)> MapMsgAppId2String
+    { {
+         {ElteFailMsgId::USER_SETUP,    "MsgUserSetupFromServer"},
+         {ElteFailMsgId::USER_CMD_MOVE, "MsgUserCmdFromClient"},
+         {ElteFailMsgId::USER_UPDATE,   "MsgUserUpdateFromServer"}
+    } };
 
     // server -> self (inject) and clients
     struct MsgUserSetup
@@ -50,13 +53,19 @@ namespace elte_fail
             const std::string& sTrollFaceTex,
             const std::string& sIpAddress)
         {
-            static_assert(sizeof(MsgUserSetup) <= pge_network::MsgApp::nMessageMaxLength, "msg size");
-            memset(&pkt, 0, sizeof(pkt));
-            pkt.m_connHandleServerSide = connHandleServerSide;
-            pkt.pktId = pge_network::PgePktId::APP;
-            pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserSetup::id);
+            // although preparePktMsgAppFill() does runtime check, we should fail already at compile-time if msg is too big!
+            static_assert(sizeof(MsgUserSetup) <= pge_network::MsgAppArea::nMessagesAreaLength, "msg size");
 
-            elte_fail::MsgUserSetup& msgUserSetup = reinterpret_cast<elte_fail::MsgUserSetup&>(pkt.msg.app.cData);
+            pge_network::PgePacket::initPktMsgApp(pkt, connHandleServerSide);
+
+            uint8_t* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
+                pkt, static_cast<pge_network::TPgeMsgAppMsgId>(id), sizeof(MsgUserSetup));
+            if (!pMsgAppData)
+            {
+                return false;
+            }
+
+            elte_fail::MsgUserSetup& msgUserSetup = reinterpret_cast<elte_fail::MsgUserSetup&>(*pMsgAppData);
             msgUserSetup.m_bCurrentClient = bCurrentClient;
             strncpy_s(msgUserSetup.m_szUserName, nUserNameMaxLength, sUserName.c_str(), sUserName.length());
             strncpy_s(msgUserSetup.m_szTrollfaceTex, nTrollfaceTexMaxLength, sTrollFaceTex.c_str(), sTrollFaceTex.length());
@@ -68,7 +77,21 @@ namespace elte_fail
         bool m_bCurrentClient;
         char m_szUserName[nUserNameMaxLength];
         char m_szTrollfaceTex[nTrollfaceTexMaxLength];
-        char m_szIpAddress[pge_network::MsgUserConnected::nIpAddressMaxLength];
+        char m_szIpAddress[pge_network::MsgUserConnectedServerSelf::nIpAddressMaxLength];
+    };
+
+    enum class VerticalDirection : std::uint8_t
+    {
+        NONE = 0,
+        UP,
+        DOWN
+    };
+
+    enum class HorizontalDirection : std::uint8_t
+    {
+        NONE = 0,
+        LEFT,
+        RIGHT
     };
 
     // clients -> server
@@ -82,14 +105,19 @@ namespace elte_fail
             const HorizontalDirection& dirHorizontal,
             const VerticalDirection& dirVertical)
         {
-            static_assert(sizeof(MsgUserCmdMove) <= pge_network::MsgApp::nMessageMaxLength, "msg size");
-            memset(&pkt, 0, sizeof(pkt));
-            // m_connHandleServerSide is ignored in this message
-            //pkt.m_connHandleServerSide = connHandleServerSide;
-            pkt.pktId = pge_network::PgePktId::APP;
-            pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserCmdMove::id);
+            // although preparePktMsgAppFill() does runtime check, we should fail already at compile-time if msg is too big!
+            static_assert(sizeof(MsgUserCmdMove) <= pge_network::MsgAppArea::nMessagesAreaLength, "msg size");
 
-            elte_fail::MsgUserCmdMove& msgUserCmdMove = reinterpret_cast<elte_fail::MsgUserCmdMove&>(pkt.msg.app.cData);
+            pge_network::PgePacket::initPktMsgApp(pkt, 0 /* m_connHandleServerSide is ignored in this message */);
+
+            uint8_t* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
+                pkt, static_cast<pge_network::TPgeMsgAppMsgId>(id), sizeof(MsgUserCmdMove));
+            if (!pMsgAppData)
+            {
+                return false;
+            }
+
+            elte_fail::MsgUserCmdMove& msgUserCmdMove = reinterpret_cast<elte_fail::MsgUserCmdMove&>(*pMsgAppData);
             msgUserCmdMove.m_dirHorizontal = dirHorizontal;
             msgUserCmdMove.m_dirVertical = dirVertical;
 
@@ -112,13 +140,19 @@ namespace elte_fail
             const TPureFloat y, 
             const TPureFloat z)
         {
-            static_assert(sizeof(MsgUserUpdate) <= pge_network::MsgApp::nMessageMaxLength, "msg size");
-            memset(&pkt, 0, sizeof(pkt));
-            pkt.m_connHandleServerSide = connHandleServerSide;
-            pkt.pktId = pge_network::PgePktId::APP;
-            pkt.msg.app.msgId = static_cast<pge_network::TPgeMsgAppMsgId>(elte_fail::MsgUserUpdate::id);
+            // although preparePktMsgAppFill() does runtime check, we should fail already at compile-time if msg is too big!
+            static_assert(sizeof(MsgUserUpdate) <= pge_network::MsgAppArea::nMessagesAreaLength, "msg size");
+            
+            pge_network::PgePacket::initPktMsgApp(pkt, connHandleServerSide);
 
-            elte_fail::MsgUserUpdate& msgUserCmdUpdate = reinterpret_cast<elte_fail::MsgUserUpdate&>(pkt.msg.app.cData);
+            uint8_t* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
+                pkt, static_cast<pge_network::TPgeMsgAppMsgId>(id), sizeof(MsgUserUpdate));
+            if (!pMsgAppData)
+            {
+                return false;
+            }
+
+            elte_fail::MsgUserUpdate& msgUserCmdUpdate = reinterpret_cast<elte_fail::MsgUserUpdate&>(*pMsgAppData);
             msgUserCmdUpdate.m_pos.x = x;
             msgUserCmdUpdate.m_pos.y = y;
             msgUserCmdUpdate.m_pos.z = z;
