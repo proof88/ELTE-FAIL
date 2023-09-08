@@ -27,10 +27,17 @@
     #################################################################################
 */
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
+#ifndef WINPROOF88_ALLOW_CONTROLS_AND_DIALOGS
+#define WINPROOF88_ALLOW_CONTROLS_AND_DIALOGS
 #endif
-#include <windows.h>
+#ifndef WINPROOF88_ALLOW_MSG_USER_WINMESSAGES
+#define WINPROOF88_ALLOW_MSG_USER_WINMESSAGES
+#endif
+// otherwise SoLoud.h will have problem due to colliding macro NOSOUND!
+#ifndef WINPROOF88_ALLOW_SOUND
+#define WINPROOF88_ALLOW_SOUND
+#endif
+#include "../../../PFL/PFL/winproof88.h"
 
 #include "CustomPGE.h"    // Using our customized PGE.
 
