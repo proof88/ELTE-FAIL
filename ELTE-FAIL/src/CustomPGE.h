@@ -9,7 +9,15 @@
     ###################################################################################
 */
 
+// Since PGE includes soloud.h that includes winproof88.h, we need to define affecting macro here because
+// later we would be late (for example, we are late in CustomPGE.cpp).
+// The only solution for this would be if PGE did NOT include soloud.h but instead it would use a wrapper
+// Audio class to hide it.
+#ifndef WINPROOF88_ALLOW_VIRTUALKEYCODES
+#define WINPROOF88_ALLOW_VIRTUALKEYCODES
+#endif
 #include "../../../PGE/PGE/PGE.h" // Using PGE.
+
 #include "../../../PGE/PGE/Pure/include/external/Object3D/PureObject3DManager.h"
 
 #include "BaseConsts.h"    // Constants, macros.
