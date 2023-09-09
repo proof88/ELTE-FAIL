@@ -18,9 +18,9 @@ namespace elte_fail
 
     enum class ElteFailMsgId : pge_network::TPgeMsgAppMsgId  /* underlying type should be same as type of MsgAppArea::msgId */
     {
-        USER_SETUP = 0,
-        USER_CMD_MOVE,
-        USER_UPDATE,
+        UserSetupFromServer = 0,
+        UserCmdMoveFromClient,
+        UserUpdateFromServer,
         LastMsgId
     };
 
@@ -33,15 +33,15 @@ namespace elte_fail
     // this way of defining std::array makes sure code cannot compile if we forget to align the array after changing ElteFailMsgId
     constexpr std::array<ElteFailMsgId2ZStringPair, static_cast<size_t>(ElteFailMsgId::LastMsgId)> MapMsgAppId2String
     { {
-         {ElteFailMsgId::USER_SETUP,    "MsgUserSetupFromServer"},
-         {ElteFailMsgId::USER_CMD_MOVE, "MsgUserCmdFromClient"},
-         {ElteFailMsgId::USER_UPDATE,   "MsgUserUpdateFromServer"}
+         {ElteFailMsgId::UserSetupFromServer,    "MsgUserSetupFromServer"},
+         {ElteFailMsgId::UserCmdMoveFromClient,  "MsgUserCmdFromClient"},
+         {ElteFailMsgId::UserUpdateFromServer,   "MsgUserUpdateFromServer"}
     } };
 
     // server -> self (inject) and clients
     struct MsgUserSetup
     {
-        static const ElteFailMsgId id = ElteFailMsgId::USER_SETUP;
+        static const ElteFailMsgId id = ElteFailMsgId::UserSetupFromServer;
         static const uint8_t nUserNameMaxLength = 64;
         static const uint8_t nTrollfaceTexMaxLength = 64;
 
@@ -98,7 +98,7 @@ namespace elte_fail
     // MsgUserCmdMove messages are sent from clients to server, so server will do sg and then update all the clients with MsgUserUpdate
     struct MsgUserCmdMove
     {
-        static const ElteFailMsgId id = ElteFailMsgId::USER_CMD_MOVE;
+        static const ElteFailMsgId id = ElteFailMsgId::UserCmdMoveFromClient;
 
         static bool initPkt(
             pge_network::PgePacket& pkt,
@@ -131,7 +131,7 @@ namespace elte_fail
     // server -> self (inject) and clients
     struct MsgUserUpdate
     {
-        static const ElteFailMsgId id = ElteFailMsgId::USER_UPDATE;
+        static const ElteFailMsgId id = ElteFailMsgId::UserUpdateFromServer;
 
         static bool initPkt(
             pge_network::PgePacket& pkt,
