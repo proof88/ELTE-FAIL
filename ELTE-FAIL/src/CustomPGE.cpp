@@ -464,7 +464,7 @@ void CustomPGE::onGameRunning()
             }
             else
             {
-                // TODO: log error
+                getConsole().EOLn("PRooFPSddPGE::%s(): initPkt() FAILED at line %d!", __func__, __LINE__);
                 assert(false);
             }
         }
@@ -720,7 +720,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             }
             else
             {
-                // TODO: log error
+                getConsole().EOLn("PRooFPSddPGE::%s(): initPkt() FAILED at line %d!", __func__, __LINE__);
                 assert(false);
             }
         }
@@ -755,7 +755,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         pge_network::PgePacket newPktSetup;
         if (!elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, false, szConnectedUserName, sTrollface, msg.szIpAddress))
         {
-            // TODO: log error
+            getConsole().EOLn("PRooFPSddPGE::%s(): initPkt() FAILED at line %d!", __func__, __LINE__);
             assert(false);
             return false;
         }
@@ -783,7 +783,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
                 false,
                 it.first, it.second.m_sTrollface, it.second.m_sIpAddress))
             {
-                // TODO: log error
+                getConsole().EOLn("PRooFPSddPGE::%s(): initPkt() FAILED at line %d!", __func__, __LINE__);
                 assert(false);
                 continue;
             }
@@ -794,7 +794,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
                 it.second.m_connHandleServerSide,
                 it.second.m_pObject3D->getPosVec().getX(), it.second.m_pObject3D->getPosVec().getY(), it.second.m_pObject3D->getPosVec().getZ()))
             {
-                // TODO: log error
+                getConsole().EOLn("PRooFPSddPGE::%s(): initPkt() FAILED at line %d!", __func__, __LINE__);
                 assert(false);
                 continue;
             }
@@ -925,7 +925,7 @@ bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     }
     else
     {
-        // TODO: log error
+        getConsole().EOLn("PRooFPSddPGE::%s(): initPkt() FAILED at line %d!", __func__, __LINE__);
         return false;
     }
 
