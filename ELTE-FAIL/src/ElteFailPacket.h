@@ -54,11 +54,11 @@ namespace elte_fail
             const std::string& sIpAddress)
         {
             // although preparePktMsgAppFill() does runtime check, we should fail already at compile-time if msg is too big!
-            static_assert(sizeof(MsgUserSetup) <= pge_network::MsgAppArea::nMessagesAreaLength, "msg size");
+            static_assert(sizeof(MsgUserSetup) <= pge_network::MsgAppArea::nMaxMessagesAreaLengthBytes, "msg size");
 
             pge_network::PgePacket::initPktMsgApp(pkt, connHandleServerSide);
 
-            uint8_t* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
+            pge_network::TByte* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
                 pkt, static_cast<pge_network::TPgeMsgAppMsgId>(id), sizeof(MsgUserSetup));
             if (!pMsgAppData)
             {
@@ -80,14 +80,14 @@ namespace elte_fail
         char m_szIpAddress[pge_network::MsgUserConnectedServerSelf::nIpAddressMaxLength];
     };
 
-    enum class VerticalDirection : std::uint8_t
+    enum class VerticalDirection : uint8_t
     {
         NONE = 0,
         UP,
         DOWN
     };
 
-    enum class HorizontalDirection : std::uint8_t
+    enum class HorizontalDirection : uint8_t
     {
         NONE = 0,
         LEFT,
@@ -106,11 +106,11 @@ namespace elte_fail
             const VerticalDirection& dirVertical)
         {
             // although preparePktMsgAppFill() does runtime check, we should fail already at compile-time if msg is too big!
-            static_assert(sizeof(MsgUserCmdMove) <= pge_network::MsgAppArea::nMessagesAreaLength, "msg size");
+            static_assert(sizeof(MsgUserCmdMove) <= pge_network::MsgAppArea::nMaxMessagesAreaLengthBytes, "msg size");
 
             pge_network::PgePacket::initPktMsgApp(pkt, 0 /* m_connHandleServerSide is ignored in this message */);
 
-            uint8_t* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
+            pge_network::TByte* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
                 pkt, static_cast<pge_network::TPgeMsgAppMsgId>(id), sizeof(MsgUserCmdMove));
             if (!pMsgAppData)
             {
@@ -141,11 +141,11 @@ namespace elte_fail
             const TPureFloat z)
         {
             // although preparePktMsgAppFill() does runtime check, we should fail already at compile-time if msg is too big!
-            static_assert(sizeof(MsgUserUpdate) <= pge_network::MsgAppArea::nMessagesAreaLength, "msg size");
+            static_assert(sizeof(MsgUserUpdate) <= pge_network::MsgAppArea::nMaxMessagesAreaLengthBytes, "msg size");
             
             pge_network::PgePacket::initPktMsgApp(pkt, connHandleServerSide);
 
-            uint8_t* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
+            pge_network::TByte* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
                 pkt, static_cast<pge_network::TPgeMsgAppMsgId>(id), sizeof(MsgUserUpdate));
             if (!pMsgAppData)
             {
