@@ -16,7 +16,7 @@
 namespace elte_fail
 {
 
-    enum class ElteFailMsgId : pge_network::TPgeMsgAppMsgId  /* underlying type should be same as type of MsgAppArea::msgId */
+    enum class ElteFailMsgId : pge_network::MsgApp::TMsgId  /* underlying type should be same as type of MsgAppArea::msgId */
     {
         UserSetupFromServer = 0,
         UserCmdMoveFromClient,
@@ -59,7 +59,7 @@ namespace elte_fail
             pge_network::PgePacket::initPktMsgApp(pkt, connHandleServerSide);
 
             pge_network::TByte* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
-                pkt, static_cast<pge_network::TPgeMsgAppMsgId>(id), sizeof(MsgUserSetup));
+                pkt, static_cast<pge_network::MsgApp::TMsgId>(id), sizeof(MsgUserSetup));
             if (!pMsgAppData)
             {
                 return false;
@@ -111,7 +111,7 @@ namespace elte_fail
             pge_network::PgePacket::initPktMsgApp(pkt, 0 /* m_connHandleServerSide is ignored in this message */);
 
             pge_network::TByte* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
-                pkt, static_cast<pge_network::TPgeMsgAppMsgId>(id), sizeof(MsgUserCmdMove));
+                pkt, static_cast<pge_network::MsgApp::TMsgId>(id), sizeof(MsgUserCmdMove));
             if (!pMsgAppData)
             {
                 return false;
@@ -146,7 +146,7 @@ namespace elte_fail
             pge_network::PgePacket::initPktMsgApp(pkt, connHandleServerSide);
 
             pge_network::TByte* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
-                pkt, static_cast<pge_network::TPgeMsgAppMsgId>(id), sizeof(MsgUserUpdate));
+                pkt, static_cast<pge_network::MsgApp::TMsgId>(id), sizeof(MsgUserUpdate));
             if (!pMsgAppData)
             {
                 return false;
