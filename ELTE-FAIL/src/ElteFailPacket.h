@@ -39,7 +39,7 @@ namespace elte_fail
     } };
 
     // server -> self (inject) and clients
-    struct MsgUserSetup
+    struct MsgUserSetupFromServer
     {
         static const ElteFailMsgId id = ElteFailMsgId::UserSetupFromServer;
         static const uint8_t nUserNameMaxLength = 64;
@@ -54,18 +54,18 @@ namespace elte_fail
             const std::string& sIpAddress)
         {
             // although preparePktMsgAppFill() does runtime check, we should fail already at compile-time if msg is too big!
-            static_assert(sizeof(MsgUserSetup) <= pge_network::MsgAppArea::nMaxMessagesAreaLengthBytes, "msg size");
+            static_assert(sizeof(MsgUserSetupFromServer) <= pge_network::MsgAppArea::nMaxMessagesAreaLengthBytes, "msg size");
 
             pge_network::PgePacket::initPktMsgApp(pkt, connHandleServerSide);
 
             pge_network::TByte* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
-                pkt, static_cast<pge_network::MsgApp::TMsgId>(id), sizeof(MsgUserSetup));
+                pkt, static_cast<pge_network::MsgApp::TMsgId>(id), sizeof(MsgUserSetupFromServer));
             if (!pMsgAppData)
             {
                 return false;
             }
 
-            elte_fail::MsgUserSetup& msgUserSetup = reinterpret_cast<elte_fail::MsgUserSetup&>(*pMsgAppData);
+            elte_fail::MsgUserSetupFromServer& msgUserSetup = reinterpret_cast<elte_fail::MsgUserSetupFromServer&>(*pMsgAppData);
             msgUserSetup.m_bCurrentClient = bCurrentClient;
             strncpy_s(msgUserSetup.m_szUserName, nUserNameMaxLength, sUserName.c_str(), sUserName.length());
             strncpy_s(msgUserSetup.m_szTrollfaceTex, nTrollfaceTexMaxLength, sTrollFaceTex.c_str(), sTrollFaceTex.length());
@@ -79,6 +79,9 @@ namespace elte_fail
         char m_szTrollfaceTex[nTrollfaceTexMaxLength];
         char m_szIpAddress[pge_network::MsgUserConnectedServerSelf::nIpAddressMaxLength];
     };
+    static_assert(std::is_trivial_v<MsgUserSetupFromServer>);
+    static_assert(std::is_trivially_copyable_v<MsgUserSetupFromServer>);
+    static_assert(std::is_standard_layout_v<MsgUserSetupFromServer>);
 
     enum class VerticalDirection : uint8_t
     {
@@ -95,8 +98,8 @@ namespace elte_fail
     };
 
     // clients -> server
-    // MsgUserCmdMove messages are sent from clients to server, so server will do sg and then update all the clients with MsgUserUpdate
-    struct MsgUserCmdMove
+    // MsgUserCmdMoveFromClient messages are sent from clients to server, so server will do sg and then update all the clients with MsgUserUpdateFromServer
+    struct MsgUserCmdMoveFromClient
     {
         static const ElteFailMsgId id = ElteFailMsgId::UserCmdMoveFromClient;
 
@@ -106,18 +109,18 @@ namespace elte_fail
             const VerticalDirection& dirVertical)
         {
             // although preparePktMsgAppFill() does runtime check, we should fail already at compile-time if msg is too big!
-            static_assert(sizeof(MsgUserCmdMove) <= pge_network::MsgAppArea::nMaxMessagesAreaLengthBytes, "msg size");
+            static_assert(sizeof(MsgUserCmdMoveFromClient) <= pge_network::MsgAppArea::nMaxMessagesAreaLengthBytes, "msg size");
 
             pge_network::PgePacket::initPktMsgApp(pkt, 0 /* m_connHandleServerSide is ignored in this message */);
 
             pge_network::TByte* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
-                pkt, static_cast<pge_network::MsgApp::TMsgId>(id), sizeof(MsgUserCmdMove));
+                pkt, static_cast<pge_network::MsgApp::TMsgId>(id), sizeof(MsgUserCmdMoveFromClient));
             if (!pMsgAppData)
             {
                 return false;
             }
 
-            elte_fail::MsgUserCmdMove& msgUserCmdMove = reinterpret_cast<elte_fail::MsgUserCmdMove&>(*pMsgAppData);
+            elte_fail::MsgUserCmdMoveFromClient& msgUserCmdMove = reinterpret_cast<elte_fail::MsgUserCmdMoveFromClient&>(*pMsgAppData);
             msgUserCmdMove.m_dirHorizontal = dirHorizontal;
             msgUserCmdMove.m_dirVertical = dirVertical;
 
@@ -127,9 +130,12 @@ namespace elte_fail
         HorizontalDirection m_dirHorizontal;
         VerticalDirection m_dirVertical;
     };
+    static_assert(std::is_trivial_v<MsgUserCmdMoveFromClient>);
+    static_assert(std::is_trivially_copyable_v<MsgUserCmdMoveFromClient>);
+    static_assert(std::is_standard_layout_v<MsgUserCmdMoveFromClient>);
 
     // server -> self (inject) and clients
-    struct MsgUserUpdate
+    struct MsgUserUpdateFromServer
     {
         static const ElteFailMsgId id = ElteFailMsgId::UserUpdateFromServer;
 
@@ -141,18 +147,18 @@ namespace elte_fail
             const TPureFloat z)
         {
             // although preparePktMsgAppFill() does runtime check, we should fail already at compile-time if msg is too big!
-            static_assert(sizeof(MsgUserUpdate) <= pge_network::MsgAppArea::nMaxMessagesAreaLengthBytes, "msg size");
+            static_assert(sizeof(MsgUserUpdateFromServer) <= pge_network::MsgAppArea::nMaxMessagesAreaLengthBytes, "msg size");
             
             pge_network::PgePacket::initPktMsgApp(pkt, connHandleServerSide);
 
             pge_network::TByte* const pMsgAppData = pge_network::PgePacket::preparePktMsgAppFill(
-                pkt, static_cast<pge_network::MsgApp::TMsgId>(id), sizeof(MsgUserUpdate));
+                pkt, static_cast<pge_network::MsgApp::TMsgId>(id), sizeof(MsgUserUpdateFromServer));
             if (!pMsgAppData)
             {
                 return false;
             }
 
-            elte_fail::MsgUserUpdate& msgUserCmdUpdate = reinterpret_cast<elte_fail::MsgUserUpdate&>(*pMsgAppData);
+            elte_fail::MsgUserUpdateFromServer& msgUserCmdUpdate = reinterpret_cast<elte_fail::MsgUserUpdateFromServer&>(*pMsgAppData);
             msgUserCmdUpdate.m_pos.x = x;
             msgUserCmdUpdate.m_pos.y = y;
             msgUserCmdUpdate.m_pos.z = z;
@@ -162,5 +168,8 @@ namespace elte_fail
 
         TXYZ m_pos;  // Z-coord is actually unused because it never gets changed during the whole gameplay ...
     };
+    static_assert(std::is_trivial_v<MsgUserUpdateFromServer>);
+    static_assert(std::is_trivially_copyable_v<MsgUserUpdateFromServer>);
+    static_assert(std::is_standard_layout_v<MsgUserUpdateFromServer>);
 
 } // namespace elte_fail

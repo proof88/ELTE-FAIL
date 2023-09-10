@@ -270,7 +270,7 @@ bool CustomPGE::onGameInitialized()
 
     if (getNetwork().isServer())
     {
-        getNetwork().getServer().getAllowListedAppMessages().insert(static_cast<pge_network::MsgApp::TMsgId>(elte_fail::MsgUserCmdMove::id));
+        getNetwork().getServer().getAllowListedAppMessages().insert(static_cast<pge_network::MsgApp::TMsgId>(elte_fail::MsgUserCmdMoveFromClient::id));
 
         if (!getNetwork().getServer().startListening())
         {
@@ -280,15 +280,15 @@ bool CustomPGE::onGameInitialized()
     }
     else
     {
-        // MsgUserSetup is also processed by server, but it injects this pkt into its own queue when needed.
-        // MsgUserSetup MUST NOT be received by server over network!
-        // MsgUserSetup is received only by clients over network!
-        getNetwork().getClient().getAllowListedAppMessages().insert(static_cast<pge_network::MsgApp::TMsgId>(elte_fail::MsgUserSetup::id));
+        // MsgUserSetupFromServer is also processed by server, but it injects this pkt into its own queue when needed.
+        // MsgUserSetupFromServer MUST NOT be received by server over network!
+        // MsgUserSetupFromServer is received only by clients over network!
+        getNetwork().getClient().getAllowListedAppMessages().insert(static_cast<pge_network::MsgApp::TMsgId>(elte_fail::MsgUserSetupFromServer::id));
 
-        // MsgUserUpdate is also processed by server, but it injects this pkt into its own queue when needed.
-        // MsgUserUpdate MUST NOT be received by server over network!
-        // MsgUserUpdate is received only by clients over network!
-        getNetwork().getClient().getAllowListedAppMessages().insert(static_cast<pge_network::MsgApp::TMsgId>(elte_fail::MsgUserUpdate::id));
+        // MsgUserUpdateFromServer is also processed by server, but it injects this pkt into its own queue when needed.
+        // MsgUserUpdateFromServer MUST NOT be received by server over network!
+        // MsgUserUpdateFromServer is received only by clients over network!
+        getNetwork().getClient().getAllowListedAppMessages().insert(static_cast<pge_network::MsgApp::TMsgId>(elte_fail::MsgUserUpdateFromServer::id));
 
         std::string sIp = "127.0.0.1";
         if (!getConfigProfiles().getVars()[CVAR_CL_SERVER_IP].getAsString().empty())
@@ -456,7 +456,7 @@ void CustomPGE::onGameRunning()
         if ((horDir != elte_fail::HorizontalDirection::NONE) || (verDir != elte_fail::VerticalDirection::NONE))
         {
             pge_network::PgePacket pkt;
-            if (elte_fail::MsgUserCmdMove::initPkt(pkt, horDir, verDir))
+            if (elte_fail::MsgUserCmdMoveFromClient::initPkt(pkt, horDir, verDir))
             {
                 // instead of using sendToServer() of getClient() or getServer() instances, we use the sendToServer() of
                 // their common interface which always points to the initialized instance, which is either client or server.
@@ -526,18 +526,18 @@ bool CustomPGE::onPacketReceived(const pge_network::PgePacket& pkt)
 
         switch (eltefailAppMsgId)
         {
-        case elte_fail::MsgUserSetup::id:
+        case elte_fail::MsgUserSetupFromServer::id:
             return handleUserSetup(
                 pge_network::PgePacket::getServerSideConnectionHandle(pkt),
-                pge_network::PgePacket::getMsgAppDataFromPkt<elte_fail::MsgUserSetup>(pkt));
-        case elte_fail::MsgUserCmdMove::id:
+                pge_network::PgePacket::getMsgAppDataFromPkt<elte_fail::MsgUserSetupFromServer>(pkt));
+        case elte_fail::MsgUserCmdMoveFromClient::id:
             return handleUserCmdMove(
                 pge_network::PgePacket::getServerSideConnectionHandle(pkt),
-                pge_network::PgePacket::getMsgAppDataFromPkt<elte_fail::MsgUserCmdMove>(pkt));
-        case elte_fail::MsgUserUpdate::id:
+                pge_network::PgePacket::getMsgAppDataFromPkt<elte_fail::MsgUserCmdMoveFromClient>(pkt));
+        case elte_fail::MsgUserUpdateFromServer::id:
             return handleUserUpdate(
                 pge_network::PgePacket::getServerSideConnectionHandle(pkt),
-                pge_network::PgePacket::getMsgAppDataFromPkt<elte_fail::MsgUserUpdate>(pkt));
+                pge_network::PgePacket::getMsgAppDataFromPkt<elte_fail::MsgUserUpdateFromServer>(pkt));
         default:
             getConsole().EOLn("CustomPGE::%s(): unknown msgId %u in MsgAppArea!", __func__, eltefailAppMsgId);
         }
@@ -571,12 +571,12 @@ void CustomPGE::onGameDestroying()
 // ############################### PRIVATE ###############################
 
 
-void CustomPGE::genUniqueUserName(char szNewUserName[elte_fail::MsgUserSetup::nUserNameMaxLength]) const
+void CustomPGE::genUniqueUserName(char szNewUserName[elte_fail::MsgUserSetupFromServer::nUserNameMaxLength]) const
 {
     bool found = false;
     do
     {
-        sprintf_s(szNewUserName, elte_fail::MsgUserSetup::nUserNameMaxLength, "User%d", 10000 + (rand() % 100000));
+        sprintf_s(szNewUserName, elte_fail::MsgUserSetupFromServer::nUserNameMaxLength, "User%d", 10000 + (rand() % 100000));
         for (const auto& client : m_mapPlayers)
         {
             found = (client.first == szNewUserName);
@@ -599,9 +599,9 @@ void CustomPGE::WritePlayerList()
     getConsole().OO();
 }
 
-bool CustomPGE::handleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserSetup& msg)
+bool CustomPGE::handleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserSetupFromServer& msg)
 {
-    if ((strnlen(msg.m_szUserName, elte_fail::MsgUserSetup::nUserNameMaxLength) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(msg.m_szUserName)))
+    if ((strnlen(msg.m_szUserName, elte_fail::MsgUserSetupFromServer::nUserNameMaxLength) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(msg.m_szUserName)))
     {
         getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s (connHandleServerSide: %u) is already present in players list!",
             __func__, msg.m_szUserName, connHandleServerSide);
@@ -705,7 +705,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         // server is processing its own birth
         if (m_mapPlayers.size() == 0)
         {
-            char szNewUserName[elte_fail::MsgUserSetup::nUserNameMaxLength];
+            char szNewUserName[elte_fail::MsgUserSetupFromServer::nUserNameMaxLength];
             genUniqueUserName(szNewUserName);
             getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me (connHandleServerSide: %u)",
                 __func__, szNewUserName, connHandleServerSide);
@@ -713,7 +713,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             szConnectedUserName = szNewUserName;
 
             pge_network::PgePacket newPktSetup;
-            if (elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, true, szConnectedUserName, sTrollface, msg.m_szIpAddress))
+            if (elte_fail::MsgUserSetupFromServer::initPkt(newPktSetup, connHandleServerSide, true, szConnectedUserName, sTrollface, msg.m_szIpAddress))
             {
                 // server injects this msg to self so resources for player will be allocated
                 getNetwork().getServer().send(newPktSetup);
@@ -746,14 +746,14 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             return false;
         }
 
-        char szNewUserName[elte_fail::MsgUserSetup::nUserNameMaxLength];
+        char szNewUserName[elte_fail::MsgUserSetupFromServer::nUserNameMaxLength];
         genUniqueUserName(szNewUserName);
         szConnectedUserName = szNewUserName;
         getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandleServerSide: %u) connected (from %s) and I'm server",
             __func__, szConnectedUserName, connHandleServerSide, msg.m_szIpAddress);
 
         pge_network::PgePacket newPktSetup;
-        if (!elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, false, szConnectedUserName, sTrollface, msg.m_szIpAddress))
+        if (!elte_fail::MsgUserSetupFromServer::initPkt(newPktSetup, connHandleServerSide, false, szConnectedUserName, sTrollface, msg.m_szIpAddress))
         {
             getConsole().EOLn("PRooFPSddPGE::%s(): initPkt() FAILED at line %d!", __func__, __LINE__);
             assert(false);
@@ -767,17 +767,17 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         getNetwork().getServer().sendToAllClientsExcept(newPktSetup, connHandleServerSide);
 
         // now we send this msg to the client with this bool flag set so client will know it is their connect
-        elte_fail::MsgUserSetup& msgUserSetup = pge_network::PgePacket::getMsgAppDataFromPkt<elte_fail::MsgUserSetup>(newPktSetup);
+        elte_fail::MsgUserSetupFromServer& msgUserSetup = pge_network::PgePacket::getMsgAppDataFromPkt<elte_fail::MsgUserSetupFromServer>(newPktSetup);
         msgUserSetup.m_bCurrentClient = true;
         getNetwork().getServer().send(newPktSetup, connHandleServerSide);
 
-        // we also send as many MsgUserSetup pkts to the client as the number of already connected players,
+        // we also send as many MsgUserSetupFromServer pkts to the client as the number of already connected players,
         // otherwise client won't know about them, so this way the client will detect them as newly connected users;
-        // we also send MsgUserUpdate about each player so new client will immediately have their positions updated.
+        // we also send MsgUserUpdateFromServer about each player so new client will immediately have their positions updated.
         pge_network::PgePacket newPktUserUpdate;
         for (const auto& it : m_mapPlayers)
         {
-            if (!elte_fail::MsgUserSetup::initPkt(
+            if (!elte_fail::MsgUserSetupFromServer::initPkt(
                 newPktSetup,
                 it.second.m_connHandleServerSide,
                 false,
@@ -789,7 +789,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             }
             getNetwork().getServer().send(newPktSetup, connHandleServerSide);
             
-            if (!elte_fail::MsgUserUpdate::initPkt(
+            if (!elte_fail::MsgUserUpdateFromServer::initPkt(
                 newPktUserUpdate,
                 it.second.m_connHandleServerSide,
                 it.second.m_pObject3D->getPosVec().getX(), it.second.m_pObject3D->getPosVec().getY(), it.second.m_pObject3D->getPosVec().getZ()))
@@ -849,11 +849,11 @@ bool CustomPGE::handleUserDisconnected(pge_network::PgeNetworkConnectionHandle c
     return true;
 }
 
-bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserCmdMove& pktUserCmdMove)
+bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserCmdMoveFromClient& pktUserCmdMove)
 {
     if (!getNetwork().isServer())
     {
-        getConsole().EOLn("CustomPGE::%s(): client received MsgUserCmdMove, CANNOT HAPPEN!", __func__);
+        getConsole().EOLn("CustomPGE::%s(): client received MsgUserCmdMoveFromClient, CANNOT HAPPEN!", __func__);
         assert(false);
         return false;
     }
@@ -919,7 +919,7 @@ bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     }
 
     pge_network::PgePacket pktOut;
-    if (elte_fail::MsgUserUpdate::initPkt(pktOut, connHandleServerSide, obj->getPosVec().getX(), obj->getPosVec().getY(), obj->getPosVec().getZ()))
+    if (elte_fail::MsgUserUpdateFromServer::initPkt(pktOut, connHandleServerSide, obj->getPosVec().getX(), obj->getPosVec().getY(), obj->getPosVec().getZ()))
     {
         getNetwork().getServer().sendToAll(pktOut);
     }
@@ -932,7 +932,7 @@ bool CustomPGE::handleUserCmdMove(pge_network::PgeNetworkConnectionHandle connHa
     return true;
 }
 
-bool CustomPGE::handleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserUpdate& msg)
+bool CustomPGE::handleUserUpdate(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserUpdateFromServer& msg)
 {
     auto it = m_mapPlayers.begin();
     while (it != m_mapPlayers.end())
