@@ -700,7 +700,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         CConsole::getConsoleInstance("PgeGnsWrapper").EOLn("%s: SERVER No more trollfaces left for user with connHandle %u", __func__, connHandleServerSide);
     }
 
-    if (msg.bCurrentClient)
+    if (msg.m_bCurrentClient)
     {
         // server is processing its own birth
         if (m_mapPlayers.size() == 0)
@@ -713,7 +713,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             szConnectedUserName = szNewUserName;
 
             pge_network::PgePacket newPktSetup;
-            if (elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, true, szConnectedUserName, sTrollface, msg.szIpAddress))
+            if (elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, true, szConnectedUserName, sTrollface, msg.m_szIpAddress))
             {
                 // server injects this msg to self so resources for player will be allocated
                 getNetwork().getServer().send(newPktSetup);
@@ -750,10 +750,10 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         genUniqueUserName(szNewUserName);
         szConnectedUserName = szNewUserName;
         getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandleServerSide: %u) connected (from %s) and I'm server",
-            __func__, szConnectedUserName, connHandleServerSide, msg.szIpAddress);
+            __func__, szConnectedUserName, connHandleServerSide, msg.m_szIpAddress);
 
         pge_network::PgePacket newPktSetup;
-        if (!elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, false, szConnectedUserName, sTrollface, msg.szIpAddress))
+        if (!elte_fail::MsgUserSetup::initPkt(newPktSetup, connHandleServerSide, false, szConnectedUserName, sTrollface, msg.m_szIpAddress))
         {
             getConsole().EOLn("PRooFPSddPGE::%s(): initPkt() FAILED at line %d!", __func__, __LINE__);
             assert(false);
