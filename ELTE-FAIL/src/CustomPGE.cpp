@@ -571,12 +571,12 @@ void CustomPGE::onGameDestroying()
 // ############################### PRIVATE ###############################
 
 
-void CustomPGE::genUniqueUserName(char szNewUserName[elte_fail::MsgUserSetupFromServer::nUserNameMaxLength]) const
+void CustomPGE::genUniqueUserName(char szNewUserName[elte_fail::MsgUserSetupFromServer::nUserNameBufferLength]) const
 {
     bool found = false;
     do
     {
-        sprintf_s(szNewUserName, elte_fail::MsgUserSetupFromServer::nUserNameMaxLength, "User%d", 10000 + (rand() % 100000));
+        sprintf_s(szNewUserName, elte_fail::MsgUserSetupFromServer::nUserNameBufferLength, "User%d", 10000 + (rand() % 100000));
         for (const auto& client : m_mapPlayers)
         {
             found = (client.first == szNewUserName);
@@ -601,7 +601,7 @@ void CustomPGE::WritePlayerList()
 
 bool CustomPGE::handleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserSetupFromServer& msg)
 {
-    if ((strnlen(msg.m_szUserName, elte_fail::MsgUserSetupFromServer::nUserNameMaxLength) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(msg.m_szUserName)))
+    if ((strnlen(msg.m_szUserName, elte_fail::MsgUserSetupFromServer::nUserNameBufferLength) > 0) && (m_mapPlayers.end() != m_mapPlayers.find(msg.m_szUserName)))
     {
         getConsole().EOLn("CustomPGE::%s(): cannot happen: user %s (connHandleServerSide: %u) is already present in players list!",
             __func__, msg.m_szUserName, connHandleServerSide);
@@ -705,7 +705,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
         // server is processing its own birth
         if (m_mapPlayers.size() == 0)
         {
-            char szNewUserName[elte_fail::MsgUserSetupFromServer::nUserNameMaxLength];
+            char szNewUserName[elte_fail::MsgUserSetupFromServer::nUserNameBufferLength];
             genUniqueUserName(szNewUserName);
             getConsole().OLn("CustomPGE::%s(): first (local) user %s connected and I'm server, so this is me (connHandleServerSide: %u)",
                 __func__, szNewUserName, connHandleServerSide);
@@ -746,7 +746,7 @@ bool CustomPGE::handleUserConnected(pge_network::PgeNetworkConnectionHandle conn
             return false;
         }
 
-        char szNewUserName[elte_fail::MsgUserSetupFromServer::nUserNameMaxLength];
+        char szNewUserName[elte_fail::MsgUserSetupFromServer::nUserNameBufferLength];
         genUniqueUserName(szNewUserName);
         szConnectedUserName = szNewUserName;
         getConsole().OLn("CustomPGE::%s(): new remote user %s (connHandleServerSide: %u) connected (from %s) and I'm server",

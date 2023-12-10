@@ -42,7 +42,7 @@ namespace elte_fail
     struct MsgUserSetupFromServer
     {
         static const ElteFailMsgId id = ElteFailMsgId::UserSetupFromServer;
-        static const uint8_t nUserNameMaxLength = 64;
+        static const uint8_t nUserNameBufferLength = 64;
         static const uint8_t nTrollfaceTexMaxLength = 64;
 
         static bool initPkt(
@@ -67,7 +67,7 @@ namespace elte_fail
 
             elte_fail::MsgUserSetupFromServer& msgUserSetup = reinterpret_cast<elte_fail::MsgUserSetupFromServer&>(*pMsgAppData);
             msgUserSetup.m_bCurrentClient = bCurrentClient;
-            strncpy_s(msgUserSetup.m_szUserName, nUserNameMaxLength, sUserName.c_str(), sUserName.length());
+            strncpy_s(msgUserSetup.m_szUserName, nUserNameBufferLength, sUserName.c_str(), sUserName.length());
             strncpy_s(msgUserSetup.m_szTrollfaceTex, nTrollfaceTexMaxLength, sTrollFaceTex.c_str(), sTrollFaceTex.length());
             strncpy_s(msgUserSetup.m_szIpAddress, sizeof(msgUserSetup.m_szIpAddress), sIpAddress.c_str(), sIpAddress.length());
 
@@ -75,7 +75,7 @@ namespace elte_fail
         }
 
         bool m_bCurrentClient;
-        char m_szUserName[nUserNameMaxLength];
+        char m_szUserName[nUserNameBufferLength];
         char m_szTrollfaceTex[nTrollfaceTexMaxLength];
         char m_szIpAddress[pge_network::MsgUserConnectedServerSelf::nIpAddressMaxLength];
     };

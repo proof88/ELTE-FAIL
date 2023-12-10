@@ -90,7 +90,7 @@ private:
 
     // ---------------------------------------------------------------------------
 
-    void genUniqueUserName(char szNewUserName[elte_fail::MsgUserSetupFromServer::nUserNameMaxLength]) const;
+    void genUniqueUserName(char szNewUserName[elte_fail::MsgUserSetupFromServer::nUserNameBufferLength]) const;
     void WritePlayerList();
     bool handleUserSetup(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const elte_fail::MsgUserSetupFromServer& msg);
     bool handleUserConnected(pge_network::PgeNetworkConnectionHandle connHandleServerSide, const pge_network::MsgUserConnectedServerSelf& msg);
