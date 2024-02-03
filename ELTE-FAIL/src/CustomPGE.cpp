@@ -252,7 +252,7 @@ bool CustomPGE::onGameInitialized()
     }
     getConsole().OLn("%s() Server parsed %d trollfaces", __func__, m_trollFaces.size());
     
-    getPure().getUImanager().addText("almafaALMAFA012345Ûˆ¸”’€_+", 10, 10);
+    getPure().getUImanager().textPermanentLegacy("almafaALMAFA012345Ûˆ¸”’€_+", 10, 10);
 
     getConsole().OO();
     getConsole().OLn("");
@@ -332,18 +332,18 @@ void CustomPGE::onGameRunning()
 
     if (!getNetwork().isServer())
     {
-        getPure().getUImanager().text(
+        getPure().getUImanager().textTemporalLegacy(
             "Ping: " + std::to_string(getNetwork().getClient().getPing(true)) + " ms",
             10, 50);
-        getPure().getUImanager().text(
+        getPure().getUImanager().textTemporalLegacy(
             "Quality: local: " + std::to_string(getNetwork().getClient().getQualityLocal(false)) +
             "; remote: " + std::to_string(getNetwork().getClient().getQualityRemote(false)),
             10, 70);
-        getPure().getUImanager().text(
+        getPure().getUImanager().textTemporalLegacy(
             "Tx Speed: " + std::to_string(getNetwork().getClient().getTxByteRate(false)) +
             " Bps; Rx Speed: " + std::to_string(getNetwork().getClient().getRxByteRate(false)) + " Bps",
             10, 90);
-        getPure().getUImanager().text(
+        getPure().getUImanager().textTemporalLegacy(
             "Internal Queue Time: " + std::to_string(getNetwork().getClient().getInternalQueueTimeUSecs(false)) + " us",
             10, 110);
     }
@@ -618,11 +618,11 @@ bool CustomPGE::handleUserSetup(pge_network::PgeNetworkConnectionHandle connHand
 
         if (getNetwork().isServer())
         {
-            getPure().getUImanager().addText("Server, User name: " + m_sUserName, 10, 30);
+            getPure().getUImanager().textPermanentLegacy("Server, User name: " + m_sUserName, 10, 30);
         }
         else
         {
-            getPure().getUImanager().addText("Client, User name: " + m_sUserName + "; IP: " + msg.m_szIpAddress, 10, 30);
+            getPure().getUImanager().textPermanentLegacy("Client, User name: " + m_sUserName + "; IP: " + msg.m_szIpAddress, 10, 30);
         }
     }
     else
