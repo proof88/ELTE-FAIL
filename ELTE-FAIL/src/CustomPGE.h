@@ -85,8 +85,6 @@ private:
     // TODO: originally username was planned to be the key for above map, however if we see that we can always use connHandleServerSide to
     // find proper player, then let's change the key to that instead of user name!
     std::set<std::string> m_trollFaces;              /**< Trollface texture file names. Used by server only. */
-    bool m_bBackSpaceReleased;
-    bool m_bShowGuiDemo;
 
     // ---------------------------------------------------------------------------
 

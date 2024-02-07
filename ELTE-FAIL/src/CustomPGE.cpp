@@ -43,9 +43,7 @@ CustomPGE* CustomPGE::createAndGetCustomPGEinstance()
     This is the only usable ctor, this is used by the static createAndGet().
 */
 CustomPGE::CustomPGE(const char* gameTitle) :
-    PGE(gameTitle),
-    m_bBackSpaceReleased(false),
-    m_bShowGuiDemo(false)
+    PGE(gameTitle)
 {
 
 } // CustomPGE(...)
@@ -117,6 +115,8 @@ bool CustomPGE::onGameInitialized()
 
     getPure().getCamera().SetNearPlane(0.1f);
     getPure().getCamera().SetFarPlane(100.0f);
+
+    getPure().getScreen().SetVSyncEnabled(true);
 
     PureTexture* const tex1 = getPure().getTextureManager().createFromFile("gamedata\\proba128x128x24.bmp");
 
@@ -322,12 +322,9 @@ void CustomPGE::onGameRunning()
 
     if (window.isActive())
     {
-        if (!m_bShowGuiDemo)
-        {
-            getInput().getMouse().SetCursorPos(
-                window.getX() + window.getWidth() / 2,
-                window.getY() + window.getHeight() / 2);
-        }
+        getInput().getMouse().SetCursorPos(
+            window.getX() + window.getWidth() / 2,
+            window.getY() + window.getHeight() / 2);
     }
 
     if (!getNetwork().isServer())
@@ -358,26 +355,6 @@ void CustomPGE::onGameRunning()
         if (getInput().getKeyboard().isKeyPressed(VK_ESCAPE))
         {
             window.Close();
-        }
-
-        if (getInput().getKeyboard().isKeyPressed(VK_BACK))
-        {
-            if (m_bBackSpaceReleased)
-            {
-                m_bShowGuiDemo = !m_bShowGuiDemo;
-                getPure().ShowGuiDemo(m_bShowGuiDemo);
-                getPure().getWindow().SetCursorVisible(m_bShowGuiDemo);
-                m_bBackSpaceReleased = false;
-            }
-        }
-        else
-        {
-            m_bBackSpaceReleased = true;
-        }
-
-        if (m_bShowGuiDemo)
-        {
-            return;
         }
 
         if (getInput().getKeyboard().isKeyPressed(VK_UP))
