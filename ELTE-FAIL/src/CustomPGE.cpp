@@ -116,7 +116,7 @@ bool CustomPGE::onGameInitialized()
     getPure().getCamera().SetNearPlane(0.1f);
     getPure().getCamera().SetFarPlane(100.0f);
 
-    getPure().getScreen().SetVSyncEnabled(true);
+    getPure().getScreen().setVSyncEnabled(true);
 
     PureTexture* const tex1 = getPure().getTextureManager().createFromFile("gamedata\\proba128x128x24.bmp");
 
